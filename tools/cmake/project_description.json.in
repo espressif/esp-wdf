@@ -1,0 +1,15 @@
+{
+    "project_name":       "${PROJECT_NAME}",
+    "project_path":       "${PROJECT_PATH}",
+    "build_dir":          "${BUILD_DIR}",
+    "config_file":        "${SDKCONFIG}",
+    "config_defaults":    "${SDKCONFIG_DEFAULTS}",
+    "app_wasm":           "${PROJECT_EXECUTABLE}",
+    "git_revision":       "${WDF_VER}",
+    "config_environment" : {
+        "COMPONENT_KCONFIGS" : "${COMPONENT_KCONFIGS}",
+        "COMPONENT_KCONFIGS_PROJBUILD" : "${COMPONENT_KCONFIGS_PROJBUILD}"
+    },
+    "build_components" : ${build_components_json},
+    "build_component_paths" : ${build_component_paths_json}
+}
