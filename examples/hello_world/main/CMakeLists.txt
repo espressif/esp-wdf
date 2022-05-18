@@ -1,0 +1,1 @@
+add_library(main STATIC hello_world.c)
