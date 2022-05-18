@@ -1,1 +1,5 @@
-add_library(main STATIC hello_world.c)
+set(srcs
+    "hello_world.c"
+    )
+
+idf_component_register(SRCS ${srcs})

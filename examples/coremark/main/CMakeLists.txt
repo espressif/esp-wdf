@@ -1,5 +1,10 @@
-aux_source_directory(. SRCS)
+set(srcs
+    "core_list_join.c"
+    "core_main.c"
+    "core_matrix.c"
+    "core_portme.c"
+    "core_state.c"
+    "core_util.c"
+    )
 
-add_library(main STATIC ${SRCS})
-
-target_include_directories(main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+idf_component_register(SRCS ${srcs})
