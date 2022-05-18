@@ -1,0 +1,13 @@
+#
+# For a description of the syntax of this configuration file,
+# see kconfig/kconfig-language.txt.
+#
+mainmenu "Espressif Webassembly Development Framework Configuration"
+
+    config IDF_CMAKE
+        bool
+        option env="IDF_CMAKE"
+
+    menu "Compiler options"
+
+    endmenu # Compiler Options
