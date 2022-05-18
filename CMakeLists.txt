@@ -7,6 +7,48 @@ if(CMAKE_CURRENT_LIST_DIR STREQUAL CMAKE_SOURCE_DIR)
     "again.")
 endif()
 
+unset(compile_options)
+unset(link_options)
+
+if(CONFIG_COMPILER_OPTIMIZATION_SIZE)
+    list(APPEND compile_options "-Os")
+elseif(CONFIG_COMPILER_OPTIMIZATION_DEFAULT)
+    list(APPEND compile_options "-Og")
+elseif(CONFIG_COMPILER_OPTIMIZATION_NONE)
+    list(APPEND compile_options "-O0")
+elseif(CONFIG_COMPILER_OPTIMIZATION_PERF)
+    list(APPEND compile_options "-O3")
+endif()
+
+if(CONFIG_COMPILER_WASI_NO_USE_STDLIB)
+    list(APPEND compile_options "-nostdlib")
+    list(APPEND link_options "-nostdlib")
+endif()
+
+if(CONFIG_COMPILER_WASI_USE_WAMR_LIBC_BUILTIN_SYSROOT)
+    idf_build_get_property(wdf_path WDF_PATH)
+    set(CMAKE_SYSROOT ${WDF_PATH}/components/wamr/libc-builtin-sysroot)
+endif()
+
+if(CONFIG_COMPILER_WASI_STACK_SIZE)
+    list(APPEND link_options "-z stack-size=${CONFIG_COMPILER_WASI_STACK_SIZE}")
+endif()
+
+if(CONFIG_COMPILER_WASI_USE_SHARED_MEMORY)
+    list(APPEND link_options "-Wl,--shared-memory")
+endif()
+
+if(CONFIG_COMPILER_WASI_INITIAL_MEMORY)
+    list(APPEND link_options "-Wl,--initial-memory=${CONFIG_COMPILER_WASI_INITIAL_MEMORY}")
+endif()
+
+if(CONFIG_COMPILER_WASI_MAX_MEMORY)
+    list(APPEND link_options "-Wl,--max-memory=${CONFIG_COMPILER_WASI_MAX_MEMORY}")
+endif()
+
+idf_build_set_property(COMPILE_OPTIONS "${compile_options}" APPEND)
+idf_build_set_property(LINK_OPTIONS "${link_options}" APPEND)
+
 idf_build_get_property(build_component_targets __BUILD_COMPONENT_TARGETS)
 
 # Add each component as a subdirectory, processing each component's CMakeLists.txt

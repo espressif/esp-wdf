@@ -396,6 +396,16 @@ macro(project project_name)
         target_link_libraries(${project_wasm} ${build_component})
     endforeach()
 
+    idf_build_get_property(build_components BUILD_COMPONENT_ALIASES)
+    if(test_components)
+        list(REMOVE_ITEM build_components ${test_components})
+    endif()
+    target_link_libraries(${project_wasm} ${build_components})
+
+    set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" APPEND PROPERTY
+        ADDITIONAL_MAKE_CLEAN_FILES
+        "${project_wasm_src}")
+
     idf_build_executable(${project_wasm})
 
     __project_info("${test_components}")
