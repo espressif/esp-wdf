@@ -90,28 +90,20 @@ function(__build_set_default_build_specifications)
     unset(c_compile_options)
     unset(cxx_compile_options)
 
-    list(APPEND compile_definitions "-D_GNU_SOURCE")
+    list(APPEND compile_definitions "")
 
-    list(APPEND compile_options     "-ffunction-sections"
-                                    "-fdata-sections"
-                                    # warning-related flags
-                                    "-Wall"
-                                    "-Werror=all"
-                                    "-Wno-error=unused-function"
-                                    "-Wno-error=unused-variable"
-                                    "-Wno-error=deprecated-declarations"
-                                    "-Wextra"
-                                    "-Wno-unused-parameter"
-                                    "-Wno-sign-compare"
-                                    # always generate debug symbols (even in release mode, these don't
-                                    # go into the final binary so have no impact on size
-                                    "-ggdb")
+    list(APPEND compile_options     "-Wno-unused-command-line-argument")
 
-    list(APPEND c_compile_options   "-std=gnu99")
+    list(APPEND c_compile_options   "")
 
-    list(APPEND cxx_compile_options "-std=gnu++11")
+    list(APPEND cxx_compile_options "")
 
-    list(APPEND link_options "-Wl,--gc-sections")
+    list(APPEND link_options        "-Wl,--no-entry"
+                                    "-Wl,--strip-all"
+                                    "-Wl,--allow-undefined"
+                                    "-Wl,--export=main"
+                                    "-Wl,--export=__heap_base -Wl,--export=__data_end"
+                                    )
 
     idf_build_set_property(COMPILE_DEFINITIONS "${compile_definitions}" APPEND)
     idf_build_set_property(COMPILE_OPTIONS "${compile_options}" APPEND)
@@ -142,7 +134,7 @@ function(__build_init wdf_path)
     idf_build_set_property(__PREFIX wdf)
     idf_build_set_property(__CHECK_PYTHON 1)
 
-    # __build_set_default_build_specifications()
+    __build_set_default_build_specifications()
 
     # Add internal components to the build
     idf_build_get_property(wdf_path WDF_PATH)

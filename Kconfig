@@ -8,6 +8,84 @@ mainmenu "Espressif Webassembly Development Framework Configuration"
         bool
         option env="IDF_CMAKE"
 
+    source "$COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE"
+
     menu "Compiler options"
 
+        choice COMPILER_OPTIMIZATION
+            prompt "Optimization Level"
+            default COMPILER_OPTIMIZATION_DEFAULT
+            help
+                This option sets compiler optimization level (gcc -O argument) for the app.
+
+                - The "Default" setting will add the -0g flag to CFLAGS.
+                - The "Size" setting will add the -0s flag to CFLAGS.
+                - The "Performance" setting will add the -O3 flag to CFLAGS.
+                - The "None" setting will add the -O0 flag to CFLAGS.
+
+                The "Size" setting cause the compiled code to be smaller and faster, but
+                may lead to difficulties of correlating code addresses to source file
+                lines when debugging.
+
+                The "Performance" setting causes the compiled code to be larger and faster,
+                but will be easier to correlated code addresses to source file lines.
+
+                "None" with -O0 produces compiled code without optimization.
+
+                Note that custom optimization levels may be unsupported.
+
+            config COMPILER_OPTIMIZATION_DEFAULT
+                bool "Debug (-Og)"
+            config COMPILER_OPTIMIZATION_SIZE
+                bool "Optimize for size (-Os)"
+            config COMPILER_OPTIMIZATION_PERF
+                bool "Optimize for performance (-O3)"
+            config COMPILER_OPTIMIZATION_NONE
+                bool "Debug without optimization (-O0)"
+
+        endchoice
+
+        config COMPILER_WASI_NO_USE_STDLIB
+            bool "Don't use the standard system startup files or libraries when linking"
+            default y
+            help
+                In this mode, the libc-builtin library of WAMR must be built to run the
+                wasm app, otherwise, the libc-wasi library must be built.
+
+        config COMPILER_WASI_USE_WAMR_LIBC_BUILTIN_SYSROOT
+            bool "Use WAMR's libc-builtin-sysroot"
+            default y
+            depends on COMPILER_WASI_NO_USE_STDLIB
+            help
+                Use WAMR's libc-builtin-sysroot.
+
+        config COMPILER_WASI_STACK_SIZE
+            int "Set the auxiliary stack size"
+            default 8192
+            help
+                The auxiliary stack size, which is an area of linear memory, must be smaller
+                than the initial memory size.
+
+        config COMPILER_WASI_USE_SHARED_MEMORY
+            bool "Use shared linear memory"
+            default n
+            help
+                Use shared linear memory.
+
+        config COMPILER_WASI_INITIAL_MEMORY
+            int "Set initial size of the linear memory"
+            default 65536
+            help
+                Initial size of the linear memory, which must be a multiple of 65536.
+
+        config COMPILER_WASI_MAX_MEMORY
+            int "Set maximum size of the linear memory"
+            default 65536
+            help
+                Maximum size of the linear memory, which must be a multiple of 65536.
+
     endmenu # Compiler Options
+
+    menu "Component config"
+        source "$COMPONENT_KCONFIGS_SOURCE_FILE"
+    endmenu
