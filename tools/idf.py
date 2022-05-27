@@ -74,7 +74,7 @@ def check_environment():
         set_idf_path = realpath(os.environ['IDF_PATH'])
         if set_idf_path != detected_idf_path:
             print_warning(
-                'WARNING: IDF_PATH environment variable is set to %s but %s path indicates IDF directory %s. '
+                'WARNING: IDF_PATH environment variable is set to %s but %s path indicates WDF directory %s. '
                 'Using the environment variable directory, but results may be unexpected...' %
                 (set_idf_path, PROG, detected_idf_path))
     else:
@@ -123,9 +123,9 @@ def _safe_relpath(path, start=None):
 def debug_print_idf_version():
     version = idf_version()
     if version:
-        print_warning('ESP-IDF %s' % version)
+        print_warning('ESP-WDF %s' % version)
     else:
-        print_warning('ESP-IDF version unknown')
+        print_warning('ESP-WDF version unknown')
 
 
 class PropertyDict(dict):
@@ -708,7 +708,7 @@ def init_cli(verbose_output=None):
             pass
 
     cli_help = (
-        'ESP-IDF CLI build management tool. '
+        'ESP-WDF CLI build management tool. '
         'For commands that are not known to idf.py an attempt to execute it as a build system target will be made.')
 
     return CLI(help=cli_help, verbose_output=verbose_output, all_actions=all_actions)

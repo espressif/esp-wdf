@@ -77,7 +77,7 @@ except ImportError:
 TOOLS_FILE = 'tools/tools.json'
 TOOLS_SCHEMA_FILE = 'tools/tools_schema.json'
 TOOLS_FILE_NEW = 'tools/tools.new.json'
-IDF_ENV_FILE = 'idf-env.json'
+IDF_ENV_FILE = 'wdf-env.json'
 TOOLS_FILE_VERSION = 1
 IDF_TOOLS_PATH_DEFAULT = os.path.join('~', '.espressif')
 UNKNOWN_VERSION = 'unknown'
@@ -1000,22 +1000,22 @@ def get_python_env_path():  # type: () -> Tuple[str, str, str]
         idf_version = None
         # fallback when IDF is a shallow clone
         try:
-            with open(os.path.join(global_idf_path, 'components', 'esp_common', 'include', 'esp_idf_version.h')) as f:  # type: ignore
-                m = re.search(r'^#define\s+ESP_IDF_VERSION_MAJOR\s+(\d+).+?^#define\s+ESP_IDF_VERSION_MINOR\s+(\d+)',
+            with open(os.path.join(global_idf_path, 'components', 'esp_common', 'include', 'esp_wdf_version.h')) as f:  # type: ignore
+                m = re.search(r'^#define\s+ESP_WDF_VERSION_MAJOR\s+(\d+).+?^#define\s+ESP_WDF_VERSION_MINOR\s+(\d+)',
                               f.read(), re.DOTALL | re.MULTILINE)
                 if m:
                     idf_version = '.'.join((m.group(1), m.group(2)))
                 else:
-                    warn('Reading IDF version from C header file failed!')
+                    warn('Reading WDF version from C header file failed!')
         except Exception as e:
-            warn('Is it not possible to determine the IDF version: {}'.format(e))
+            warn('Is it not possible to determine the WDF version: {}'.format(e))
 
     if idf_version is None:
-        fatal('IDF version cannot be determined')
+        fatal('WDF version cannot be determined')
         raise SystemExit(1)
 
     idf_python_env_path = os.path.join(global_idf_tools_path, 'python_env',  # type: ignore
-                                       'idf{}_py{}_env'.format(idf_version, python_ver_major_minor))
+                                       'wdf{}_py{}_env'.format(idf_version, python_ver_major_minor))
 
     if sys.platform == 'win32':
         subdir = 'Scripts'
@@ -1733,7 +1733,7 @@ def main(argv):  # type: (list[str]) -> None
     parser.add_argument('--quiet', help='Don\'t output diagnostic messages to stdout/stderr', action='store_true')
     parser.add_argument('--non-interactive', help='Don\'t output interactive messages and questions', action='store_true')
     parser.add_argument('--tools-json', help='Path to the tools.json file to use')
-    parser.add_argument('--idf-path', help='ESP-IDF path to use')
+    parser.add_argument('--wdf-path', help='ESP-WDF path to use')
 
     subparsers = parser.add_subparsers(dest='action')
     subparsers.add_parser('list', help='List tools and versions available')
@@ -1815,8 +1815,8 @@ def main(argv):  # type: (list[str]) -> None
 
     global global_idf_path
     global_idf_path = os.environ.get('IDF_PATH')
-    if args.idf_path:
-        global_idf_path = args.idf_path
+    if args.wdf_path:
+        global_idf_path = args.wdf_path
     if not global_idf_path:
         global_idf_path = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     os.environ['IDF_PATH'] = global_idf_path

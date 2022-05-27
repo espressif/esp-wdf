@@ -1,6 +1,7 @@
 .config
 *.o
 *.pyc
+*.egg-info
 
 # emacs
 .dir-locals.el

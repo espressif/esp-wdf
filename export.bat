@@ -26,7 +26,7 @@ echo Setting IDF_PATH: %IDF_PATH%
 echo.
 
 set "OLD_PATH=%PATH%"
-echo Adding ESP-IDF tools to PATH...
+echo Adding ESP-WDF tools to PATH...
 :: Export tool paths and environment variables.
 :: It is possible to do this without a temporary file (running idf_tools.py from for /r command),
 :: but that way it is impossible to get the exit code of idf_tools.py.
@@ -45,17 +45,13 @@ if "%PATH_ADDITIONS%"=="" call :__print_nothing_added
 if not "%PATH_ADDITIONS%"=="" echo     %PATH_ADDITIONS:;=&echo.    %
 
 DOSKEY idf.py=python.exe "%IDF_PATH%\tools\idf.py" $*
-DOSKEY esptool.py=python.exe "%IDF_PATH%\components\esptool_py\esptool\esptool.py" $*
-DOSKEY espefuse.py=python.exe "%IDF_PATH%\components\esptool_py\esptool\espefuse.py" $*
-DOSKEY otatool.py=python.exe "%IDF_PATH%\components\app_update\otatool.py" $*
-DOSKEY parttool.py=python.exe "%IDF_PATH%\components\partition_table\parttool.py" $*
 
 echo Checking if Python packages are up to date...
 python.exe "%IDF_PATH%\tools\check_python_dependencies.py"
 if %errorlevel% neq 0 goto :__end
 
 echo.
-echo Done! You can now compile ESP-IDF projects.
+echo Done! You can now compile ESP-WDF projects.
 echo Go to the project directory and run:
 echo.
 echo   idf.py build
@@ -76,9 +72,7 @@ goto :__end
     echo.
     echo %MISSING_REQUIREMENTS%
     echo.
-    echo Please use the Windows Tool installer for setting up your environment.
-    echo Download link: https://dl.espressif.com/dl/esp-idf/
-    echo For more details please visit our website: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html
+    echo Please install it, and make sure that it can be found in PATH.
     goto :__end
 
 :__end

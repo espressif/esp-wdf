@@ -6,7 +6,7 @@ $IDF_PATH = $PSScriptRoot
 Write-Output "Setting IDF_PATH: $IDF_PATH"
 $env:IDF_PATH = $IDF_PATH
 
-Write-Output "Adding ESP-IDF tools to PATH..."
+Write-Output "Adding ESP-WDF tools to PATH..."
 $OLD_PATH = $env:PATH.split($S) | Select-Object -Unique # array without duplicates
 # using idf_tools.py to get $envars_array to set
 $envars_raw = python $IDF_PATH/tools/idf_tools.py export --format key-value
@@ -47,14 +47,6 @@ foreach ($pair  in $envars_array) {
     }
 }
 
-# Allow calling some IDF python tools without specifying the full path
-# ${IDF_PATH}/tools is already added by 'idf_tools.py export'
-$IDF_ADD_PATHS_EXTRAS = [IO.Path]::Combine(${IDF_PATH}, "components", "esptool_py", "esptool")
-$IDF_ADD_PATHS_EXTRAS += ${S} + [IO.Path]::Combine(${IDF_PATH}, "components", "app_update")
-$IDF_ADD_PATHS_EXTRAS += ${S} + [IO.Path]::Combine(${IDF_PATH}, "components", "espcoredump")
-$IDF_ADD_PATHS_EXTRAS += ${S} + [IO.Path]::Combine(${IDF_PATH}, "components", "partition_table")
-$env:PATH = $IDF_ADD_PATHS_EXTRAS + $S + $env:PATH
-
 #Compare Path's OLD vs. NEW
 $NEW_PATH = $env:PATH.split($S) | Select-Object -Unique # array without duplicates
 $dif_Path = Compare-Object -ReferenceObject $OLD_PATH -DifferenceObject $NEW_PATH -PassThru
@@ -73,7 +65,8 @@ Start-Process -Wait -NoNewWindow -FilePath "python" -Args "`"$IDF_PATH/tools/che
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } # if error
 
 Write-Output "
-Done! You can now compile ESP-IDF projects.
+
+Done! You can now compile ESP-WDF projects.
 Go to the project directory and run:
     idf.py build
 

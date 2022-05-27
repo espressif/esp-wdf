@@ -73,7 +73,7 @@ __main() {
         # Check if this path looks like an IDF directory
         if [ ! -f "${IDF_PATH}/tools/idf.py" ] || [ ! -f "${IDF_PATH}/tools/idf_tools.py" ]
         then
-            echo "IDF_PATH is set to '${IDF_PATH}', but it doesn't look like an ESP-IDF directory."
+            echo "IDF_PATH is set to '${IDF_PATH}', but it doesn't look like an ESP-WDF directory."
             echo "If you have set IDF_PATH manually, check if the path is correct."
             return 1
         fi
@@ -87,7 +87,7 @@ __main() {
     echo "Detecting the Python interpreter"
     . "${IDF_PATH}/tools/detect_python.sh"
 
-    __verbose "Adding ESP-IDF tools to PATH..."
+    __verbose "Adding ESP-WDF tools to PATH..."
     # Call idf_tools.py to export tool paths
     export IDF_TOOLS_EXPORT_CMD=${IDF_PATH}/export.sh
     export IDF_TOOLS_INSTALL_CMD=${IDF_PATH}/install.sh
@@ -97,15 +97,6 @@ __main() {
     __verbose "Using Python interpreter in $(which python)"
     __verbose "Checking if Python packages are up to date..."
     python "${IDF_PATH}/tools/check_python_dependencies.py" || return 1
-
-
-    # Allow calling some IDF python tools without specifying the full path
-    # ${IDF_PATH}/tools is already added by 'idf_tools.py export'
-    IDF_ADD_PATHS_EXTRAS="${IDF_PATH}/components/esptool_py/esptool"
-    IDF_ADD_PATHS_EXTRAS="${IDF_ADD_PATHS_EXTRAS}:${IDF_PATH}/components/espcoredump"
-    IDF_ADD_PATHS_EXTRAS="${IDF_ADD_PATHS_EXTRAS}:${IDF_PATH}/components/partition_table"
-    IDF_ADD_PATHS_EXTRAS="${IDF_ADD_PATHS_EXTRAS}:${IDF_PATH}/components/app_update"
-    export PATH="${IDF_ADD_PATHS_EXTRAS}:${PATH}"
 
     if [ -n "$BASH" ]
     then
@@ -129,8 +120,8 @@ __main() {
         __verbose "  ${PATH}"
     fi
 
-
-    __verbose "Done! You can now compile ESP-IDF projects."
+    __verbose ""
+    __verbose "Done! You can now compile ESP-WDF projects."
     __verbose "Go to the project directory and run:"
     __verbose ""
     __verbose "  idf.py build"

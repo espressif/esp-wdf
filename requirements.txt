@@ -1,0 +1,10 @@
+click>=7.0
+
+future>=0.15.2
+kconfiglib==13.7.1
+
+# windows-curses are required in Windows command line but cannot be installed in MSYS2. A requirement like
+# "windows-curses; sys_platform == 'win32'" would want to install the package on both of them. There is no environment
+# marker for detecting MSYS2. So instead, a dummy custom package is used with "windows-curses" dependency for Windows
+# command line.
+file://${IDF_PATH}/tools/kconfig_new/esp-windows-curses; sys_platform == 'win32'

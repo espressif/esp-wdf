@@ -18,11 +18,8 @@ if not "%MISSING_REQUIREMENTS%" == "" goto :error_missing_requirements
 set IDF_PATH=%~dp0
 set IDF_PATH=%IDF_PATH:~0,-1%
 
-set TARGETS="all"
-if NOT "%1"=="" set TARGETS=%*
-
-echo Installing ESP-IDF tools
-python.exe "%IDF_PATH%\tools\idf_tools.py" install --targets=%TARGETS%
+echo Installing ESP-WDF tools
+python.exe "%IDF_PATH%\tools\idf_tools.py" install
 if %errorlevel% neq 0 goto :end
 
 echo Setting up Python environment
@@ -39,9 +36,7 @@ goto :end
     echo.
     echo %MISSING_REQUIREMENTS%
     echo.
-    echo Please use the Windows Tool installer for setting up your environment.
-    echo Download link: https://dl.espressif.com/dl/esp-idf/
-    echo For more details please visit our website: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html
+    echo Please install it, and make sure that it can be found in PATH.
     goto :end
 
 :end

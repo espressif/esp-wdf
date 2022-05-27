@@ -10,13 +10,8 @@ export IDF_PATH
 echo "Detecting the Python interpreter"
 . "${IDF_PATH}/tools/detect_python.sh"
 
-if [ "$#" -eq 0 ]; then
-  TARGETS="all"
-else
-  TARGETS=$1
-fi
-echo "Installing ESP-IDF tools"
-"${ESP_PYTHON}" "${IDF_PATH}/tools/idf_tools.py" install --targets=${TARGETS}
+echo "Installing ESP-WDF tools"
+"${ESP_PYTHON}" "${IDF_PATH}/tools/idf_tools.py" install
 
 echo "Installing Python environment and packages"
 "${ESP_PYTHON}" "${IDF_PATH}/tools/idf_tools.py" install-python-env

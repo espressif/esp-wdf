@@ -11,7 +11,7 @@ function __main
     echo "Detecting the Python interpreter"
     source "$IDF_PATH"/tools/detect_python.fish
 
-    echo "Adding ESP-IDF tools to PATH..."
+    echo "Adding ESP-WDF tools to PATH..."
     # Call idf_tools.py to export tool paths
     set -x IDF_TOOLS_EXPORT_CMD "$IDF_PATH"/export.fish
     set -x IDF_TOOLS_INSTALL_CMD "$IDF_PATH"/install.fish
@@ -20,14 +20,6 @@ function __main
 
     echo "Checking if Python packages are up to date..."
     python "$IDF_PATH"/tools/check_python_dependencies.py || return 1
-
-    # Allow calling some IDF python tools without specifying the full path
-    # "$IDF_PATH"/tools is already added by 'idf_tools.py export'
-    set IDF_ADD_PATHS_EXTRAS "$IDF_PATH"/components/esptool_py/esptool
-    set IDF_ADD_PATHS_EXTRAS "$IDF_ADD_PATHS_EXTRAS":"$IDF_PATH"/components/espcoredump
-    set IDF_ADD_PATHS_EXTRAS "$IDF_ADD_PATHS_EXTRAS":"$IDF_PATH"/components/partition_table
-    set IDF_ADD_PATHS_EXTRAS "$IDF_ADD_PATHS_EXTRAS":"$IDF_PATH"/components/app_update
-    set -x PATH "$IDF_ADD_PATHS_EXTRAS":"$PATH"
 
     set added_path_variables
     for entry in $PATH;
@@ -58,7 +50,8 @@ function __main
     # Not unsetting IDF_PYTHON_ENV_PATH, it can be used by IDF build system
     # to check whether we are using a private Python environment
 
-    echo "Done! You can now compile ESP-IDF projects."
+    echo ""
+    echo "Done! You can now compile ESP-WDF projects."
     echo "Go to the project directory and run:"
     echo ""
     echo "  idf.py build"

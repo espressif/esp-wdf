@@ -194,9 +194,9 @@ def action_extensions(base_actions, project_path):
         version = idf_version()
 
         if not version:
-            raise FatalError('ESP-IDF version cannot be determined')
+            raise FatalError('ESP-WDF version cannot be determined')
 
-        print('ESP-IDF %s' % version)
+        print('ESP-WDF %s' % version)
         sys.exit(0)
 
     def list_targets_callback(ctx, param, value):
@@ -254,7 +254,7 @@ def action_extensions(base_actions, project_path):
         'global_options': [
             {
                 'names': ['--version'],
-                'help': 'Show IDF version and exit.',
+                'help': 'Show WDF version and exit.',
                 'is_flag': True,
                 'expose_value': False,
                 'callback': idf_version_callback,
@@ -294,12 +294,6 @@ def action_extensions(base_actions, project_path):
                 'is_eager': True,
                 'default': False,
                 'callback': verbose_callback,
-            },
-            {
-                'names': ['--preview'],
-                'help': 'Enable IDF features that are still in preview.',
-                'is_flag': True,
-                'default': False,
             },
             {
                 'names': ['--ccache/--no-ccache'],
@@ -373,106 +367,6 @@ def action_extensions(base_actions, project_path):
                 'help': 'Run JSON configuration server.',
                 'options': global_options,
             },
-            'size': {
-                'callback': size_target,
-                'help': 'Print basic size information about the app.',
-                'options': global_options,
-            },
-            'size-components': {
-                'callback': size_target,
-                'help': 'Print per-component size information.',
-                'options': global_options,
-            },
-            'size-files': {
-                'callback': size_target,
-                'help': 'Print per-source-file size information.',
-                'options': global_options,
-            },
-            'bootloader': {
-                'callback': build_target,
-                'help': 'Build only bootloader.',
-                'options': global_options,
-            },
-            'app': {
-                'callback': build_target,
-                'help': 'Build only the app.',
-                'order_dependencies': ['clean', 'fullclean', 'reconfigure'],
-                'options': global_options,
-            },
-            'efuse-common-table': {
-                'callback': build_target,
-                'help': 'Generate C-source for IDF\'s eFuse fields. Deprecated alias: "efuse_common_table".',
-                'order_dependencies': ['reconfigure'],
-                'options': global_options,
-            },
-            'efuse_common_table': {
-                'callback': build_target,
-                'hidden': True,
-                'help': "Generate C-source for IDF's eFuse fields.",
-                'order_dependencies': ['reconfigure'],
-                'options': global_options,
-            },
-            'efuse-custom-table': {
-                'callback': build_target,
-                'help': 'Generate C-source for user\'s eFuse fields. Deprecated alias: "efuse_custom_table".',
-                'order_dependencies': ['reconfigure'],
-                'options': global_options,
-            },
-            'efuse_custom_table': {
-                'callback': build_target,
-                'hidden': True,
-                'help': 'Generate C-source for user\'s eFuse fields.',
-                'order_dependencies': ['reconfigure'],
-                'options': global_options,
-            },
-            'show-efuse-table': {
-                'callback': build_target,
-                'help': 'Print eFuse table. Deprecated alias: "show_efuse_table".',
-                'order_dependencies': ['reconfigure'],
-                'options': global_options,
-            },
-            'show_efuse_table': {
-                'callback': build_target,
-                'hidden': True,
-                'help': 'Print eFuse table.',
-                'order_dependencies': ['reconfigure'],
-                'options': global_options,
-            },
-            'partition-table': {
-                'callback': build_target,
-                'help': 'Build only partition table. Deprecated alias: "parititon_table".',
-                'order_dependencies': ['reconfigure'],
-                'options': global_options,
-            },
-            'partition_table': {
-                'callback': build_target,
-                'hidden': True,
-                'help': 'Build only partition table.',
-                'order_dependencies': ['reconfigure'],
-                'options': global_options,
-            },
-            'erase_otadata': {
-                'callback': build_target,
-                'hidden': True,
-                'help': 'Erase otadata partition.',
-                'options': global_options,
-            },
-            'erase-otadata': {
-                'callback': build_target,
-                'help': 'Erase otadata partition. Deprecated alias: "erase_otadata".',
-                'options': global_options,
-            },
-            'read_otadata': {
-                'callback': build_target,
-                'hidden': True,
-                'help': 'Read otadata partition.',
-                'options': global_options,
-            },
-            'read-otadata': {
-                'callback': build_target,
-                'help': 'Read otadata partition. Deprecated alias: "read_otadata".',
-                'options': global_options,
-            },
             'build-system-targets': {
                 'callback': list_build_system_targets,
                 'help': 'Print list of build system targets.',
@@ -481,36 +375,6 @@ def action_extensions(base_actions, project_path):
                 'callback': fallback_target,
                 'help': 'Handle for targets not known for idf.py.',
                 'hidden': True,
-            },
-            'docs': {
-                'callback': show_docs,
-                'help': 'Open web browser with documentation for ESP-IDF',
-                'options': [
-                    {
-                        'names': ['--no-browser', '-nb'],
-                        'is_flag': True,
-                        'help': 'Don\'t open browser.'
-                    },
-                    {
-                        'names': ['--language', '-l'],
-                        'default': get_default_language(),
-                        'type': click.Choice(['en', 'zh_CN', 'cn']),
-                        'help': 'Documentation language. Your system language by default (en or cn)'
-                    },
-                    {
-                        'names': ['--starting-page', '-sp'],
-                        'help': 'Documentation page (get-started, api-reference etc).'
-                    },
-                    {
-                        'names': ['--version', '-v'],
-                        'help': 'Version of ESP-IDF.'
-                    },
-                    {
-                        'names': ['--target', '-t'],
-                        'type': TargetChoice(SUPPORTED_TARGETS + PREVIEW_TARGETS + ['']),
-                        'help': 'Chip target.'
-                    }
-                ]
             }
         }
     }
@@ -529,24 +393,6 @@ def action_extensions(base_actions, project_path):
                     'can be used to set variable "NAME" in CMake cache to value "VALUE".'),
                 'options': global_options,
                 'order_dependencies': ['menuconfig', 'fullclean'],
-            },
-            'set-target': {
-                'callback': set_target,
-                'short_help': 'Set the chip target to build.',
-                'help': (
-                    'Set the chip target to build. This will remove the '
-                    'existing sdkconfig file and corresponding CMakeCache and '
-                    'create new ones according to the new target.\nFor example, '
-                    "\"idf.py set-target esp32\" will select esp32 as the new chip "
-                    'target.'),
-                'arguments': [
-                    {
-                        'names': ['idf-target'],
-                        'nargs': 1,
-                        'type': TargetChoice(SUPPORTED_TARGETS + PREVIEW_TARGETS),
-                    },
-                ],
-                'dependencies': ['fullclean'],
             },
             'clean': {
                 'callback': clean,
@@ -572,10 +418,10 @@ def action_extensions(base_actions, project_path):
             },
             'python-clean': {
                 'callback': python_clean,
-                'short_help': 'Delete generated Python byte code from the IDF directory',
+                'short_help': 'Delete generated Python byte code from the WDF directory',
                 'help': (
-                    'Delete generated Python byte code from the IDF directory '
-                    'which may cause issues when switching between IDF and Python versions. '
+                    'Delete generated Python byte code from the WDF directory '
+                    'which may cause issues when switching between WDF and Python versions. '
                     'It is advised to run this target after switching versions.')
             },
         }

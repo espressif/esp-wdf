@@ -7,13 +7,8 @@ set -x IDF_PATH $basedir
 echo "Detecting the Python interpreter"
 source "$IDF_PATH"/tools/detect_python.fish
 
-if not set -q argv[1]
-    set TARGETS "all"
-else
-    set TARGETS $argv[1]
-end
-echo "Installing ESP-IDF tools"
-"$ESP_PYTHON" "$IDF_PATH"/tools/idf_tools.py install --targets=$TARGETS
+echo "Installing ESP-WDF tools"
+"$ESP_PYTHON" "$IDF_PATH"/tools/idf_tools.py install
 or exit 1
 
 echo "Installing Python environment and packages"
