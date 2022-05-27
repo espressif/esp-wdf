@@ -92,16 +92,19 @@ function(__build_set_default_build_specifications)
 
     list(APPEND compile_definitions "")
 
-    list(APPEND compile_options     "-Wno-unused-command-line-argument")
+    list(APPEND compile_options     "-pthread"
+                                    "-Wno-unused-command-line-argument")
 
     list(APPEND c_compile_options   "")
 
     list(APPEND cxx_compile_options "")
 
     list(APPEND link_options        "-Wl,--no-entry"
+                                    "-Wl,--no-check-features"
                                     "-Wl,--strip-all"
                                     "-Wl,--allow-undefined"
                                     "-Wl,--export=main"
+                                    "-Wl,--export=__main_argc_argv"
                                     "-Wl,--export=__heap_base -Wl,--export=__data_end"
                                     )
 
