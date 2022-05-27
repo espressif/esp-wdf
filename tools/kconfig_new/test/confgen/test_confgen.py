@@ -187,7 +187,7 @@ class MakefileTestCase(ConfgenBaseTestCase):
                                   'IDF_TARGET=esp32']})
 
     def testTarget(self):
-        with open(os.path.join(os.environ['WDF_PATH'], 'Kconfig')) as f:
+        with open(os.path.join(os.environ['IDF_PATH'], 'Kconfig')) as f:
             self.invoke_and_test(f.read(), 'CONFIG_IDF_TARGET="esp32"')
 
     def testHexPrefix(self):

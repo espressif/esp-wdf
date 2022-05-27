@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-include($ENV{WDF_PATH}/tools/cmake/project.cmake)
+include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
 project(event_publisher)

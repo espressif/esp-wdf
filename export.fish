@@ -1,10 +1,9 @@
 # This script should be sourced, not executed.
 
 function __main
-    if not set -q IDF_PATH
-        echo "IDF_PATH must be set before sourcing this script"
-        return 1
-    end
+    set basedir (realpath (dirname (status -f)))
+
+    set -x IDF_PATH $basedir
 
     set oldpath = $PATH
 

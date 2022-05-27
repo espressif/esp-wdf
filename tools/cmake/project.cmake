@@ -24,6 +24,17 @@ if(PYTHON_DEPS_CHECKED)
     idf_build_set_property(__CHECK_PYTHON 0)
 endif()
 
+# Store CMake arguments that need to be passed into all CMake sub-projects as well
+# (bootloader, ULP, etc)
+#
+# It's not possible to tell if CMake was called with --warn-uninitialized, so to also
+# have these warnings in sub-projects we set a cache variable as well and then check that.
+if(WARN_UNINITIALIZED)
+    idf_build_set_property(EXTRA_CMAKE_ARGS --warn-uninitialized)
+else()
+    idf_build_set_property(EXTRA_CMAKE_ARGS "")
+endif()
+
 #
 # Get the project version from either a version file or the Git revision. This is passed
 # to the idf_build_process call. Dependencies are also set here for when the version file
@@ -57,7 +68,7 @@ function(__project_info test_components)
     idf_build_get_property(prefix __PREFIX)
     idf_build_get_property(_build_components BUILD_COMPONENTS)
     idf_build_get_property(build_dir BUILD_DIR)
-    idf_build_get_property(wdf_path WDF_PATH)
+    idf_build_get_property(idf_path IDF_PATH)
 
     list(SORT _build_components)
 
@@ -102,7 +113,7 @@ function(__project_info test_components)
     idf_build_get_property(build_dir BUILD_DIR)
     make_json_list("${build_components};${test_components}" build_components_json)
     make_json_list("${build_component_paths};${test_component_paths}" build_component_paths_json)
-    configure_file("${wdf_path}/tools/cmake/project_description.json.in"
+    configure_file("${idf_path}/tools/cmake/project_description.json.in"
         "${build_dir}/project_description.json")
 
     # We now have the following component-related variables:

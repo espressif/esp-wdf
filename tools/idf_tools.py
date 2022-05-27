@@ -1733,7 +1733,7 @@ def main(argv):  # type: (list[str]) -> None
     parser.add_argument('--quiet', help='Don\'t output diagnostic messages to stdout/stderr', action='store_true')
     parser.add_argument('--non-interactive', help='Don\'t output interactive messages and questions', action='store_true')
     parser.add_argument('--tools-json', help='Path to the tools.json file to use')
-    parser.add_argument('--wdf-path', help='ESP-WDF path to use')
+    parser.add_argument('--idf-path', help='ESP-WDF path to use')
 
     subparsers = parser.add_subparsers(dest='action')
     subparsers.add_parser('list', help='List tools and versions available')
@@ -1815,8 +1815,8 @@ def main(argv):  # type: (list[str]) -> None
 
     global global_idf_path
     global_idf_path = os.environ.get('IDF_PATH')
-    if args.wdf_path:
-        global_idf_path = args.wdf_path
+    if args.idf_path:
+        global_idf_path = args.idf_path
     if not global_idf_path:
         global_idf_path = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     os.environ['IDF_PATH'] = global_idf_path

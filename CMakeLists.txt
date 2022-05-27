@@ -26,8 +26,8 @@ if(CONFIG_COMPILER_WASI_NO_USE_STDLIB)
 endif()
 
 if(CONFIG_COMPILER_WASI_USE_WAMR_LIBC_BUILTIN_SYSROOT)
-    idf_build_get_property(wdf_path WDF_PATH)
-    set(CMAKE_SYSROOT ${WDF_PATH}/components/wamr/libc-builtin-sysroot)
+    idf_build_get_property(idf_path IDF_PATH)
+    set(CMAKE_SYSROOT ${IDF_PATH}/components/wamr/libc-builtin-sysroot)
 endif()
 
 if(CONFIG_COMPILER_WASI_STACK_SIZE)
