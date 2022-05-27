@@ -1,0 +1,26 @@
+menu "WAMR Configuration"
+
+    config WAMR_APP_FRAMEWORK
+        bool "Enable App Framework of WAMR"
+        default n
+        help
+            For WAMR's App Framework support, please refer to WAMR's documents.
+
+    if WAMR_APP_FRAMEWORK
+        config WAMR_APP_FRAMEWORK_EXPORT_REQUEST_RESPONSE
+            bool "export on_request & on_response"
+            default n
+            help
+                Export on_request & on_response, which will be used by runtime. If you use
+                request module of WAMR's app-framework, use functins: `api_register_resource_handler`
+                & `api_send_request`, you need to enable this option.
+
+        config WAMR_APP_FRAMEWORK_EXPORT_TIMER
+            bool "export on_timer_callback"
+            default n
+            help
+                Export on_timer_callback, which will be used by runtime. If you use timer
+                module of WAMR's app-framework, use function: `api_timer_create`, you need
+                to enable this option.
+    endif
+endmenu

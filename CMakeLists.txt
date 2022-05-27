@@ -46,6 +46,20 @@ if(CONFIG_COMPILER_WASI_MAX_MEMORY)
     list(APPEND link_options "-Wl,--max-memory=${CONFIG_COMPILER_WASI_MAX_MEMORY}")
 endif()
 
+if(CONFIG_WAMR_APP_FRAMEWORK)
+    list(APPEND link_options "-Wl,--export=on_init")
+    list(APPEND link_options "-Wl,--export=on_destroy")
+endif()
+
+if(CONFIG_WAMR_APP_FRAMEWORK_EXPORT_REQUEST_RESPONSE)
+    list(APPEND link_options "-Wl,--export=on_request")
+    list(APPEND link_options "-Wl,--export=on_response")
+endif()
+
+if(CONFIG_WAMR_APP_FRAMEWORK_EXPORT_TIMER)
+    list(APPEND link_options "-Wl,--export=on_timer_callback")
+endif()
+
 idf_build_set_property(COMPILE_OPTIONS "${compile_options}" APPEND)
 idf_build_set_property(LINK_OPTIONS "${link_options}" APPEND)
 
