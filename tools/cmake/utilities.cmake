@@ -79,7 +79,7 @@ endfunction()
 function(target_add_binary_data target embed_file embed_type)
     cmake_parse_arguments(_ "" "RENAME_TO" "DEPENDS" ${ARGN})
     idf_build_get_property(build_dir BUILD_DIR)
-    idf_build_get_property(wdf_path WDF_PATH)
+    idf_build_get_property(idf_path IDF_PATH)
 
     get_filename_component(embed_file "${embed_file}" ABSOLUTE)
 
@@ -97,9 +97,9 @@ function(target_add_binary_data target embed_file embed_type)
         -D "SOURCE_FILE=${embed_srcfile}"
         ${rename_to_arg}
         -D "FILE_TYPE=${embed_type}"
-        -P "${wdf_path}/tools/cmake/scripts/data_file_embed_asm.cmake"
+        -P "${idf_path}/tools/cmake/scripts/data_file_embed_asm.cmake"
         MAIN_DEPENDENCY "${embed_file}"
-        DEPENDS "${wdf_path}/tools/cmake/scripts/data_file_embed_asm.cmake" ${__DEPENDS}
+        DEPENDS "${idf_path}/tools/cmake/scripts/data_file_embed_asm.cmake" ${__DEPENDS}
         WORKING_DIRECTORY "${build_dir}"
         VERBATIM)
 
@@ -203,7 +203,7 @@ endfunction()
 # We cannot use CMAKE_CONFIGURE_DEPENDS instead because it only works for files which exist at CMake runtime.
 #
 function(fail_at_build_time target_name message_line0)
-    idf_build_get_property(wdf_path WDF_PATH)
+    idf_build_get_property(idf_path IDF_PATH)
     set(message_lines COMMAND ${CMAKE_COMMAND} -E echo "${message_line0}")
     foreach(message_line ${ARGN})
         set(message_lines ${message_lines} COMMAND ${CMAKE_COMMAND} -E echo "${message_line}")
@@ -219,7 +219,7 @@ function(fail_at_build_time target_name message_line0)
         ${message_lines}
         COMMAND ${CMAKE_COMMAND} -E remove "${filename}"
         COMMAND ${CMAKE_COMMAND} -E env FAIL_MESSAGE=${fail_message}
-                ${CMAKE_COMMAND} -P ${wdf_path}/tools/cmake/scripts/fail.cmake
+                ${CMAKE_COMMAND} -P ${idf_path}/tools/cmake/scripts/fail.cmake
         VERBATIM)
 endfunction()
 
@@ -229,7 +229,7 @@ endfunction()
 # for a target are not met, such as configuration. Rather than ommitting the target altogether,
 # we fail execution with a helpful message.
 function(fail_target target_name message_line0)
-    idf_build_get_property(wdf_path WDF_PATH)
+    idf_build_get_property(idf_path IDF_PATH)
     set(message_lines COMMAND ${CMAKE_COMMAND} -E echo "${message_line0}")
     foreach(message_line ${ARGN})
         set(message_lines ${message_lines} COMMAND ${CMAKE_COMMAND} -E echo "${message_line}")
@@ -240,7 +240,7 @@ function(fail_target target_name message_line0)
     add_custom_target(${target_name}
         ${message_lines}
         COMMAND ${CMAKE_COMMAND} -E env FAIL_MESSAGE=${fail_message}
-                ${CMAKE_COMMAND} -P ${wdf_path}/tools/cmake/scripts/fail.cmake
+                ${CMAKE_COMMAND} -P ${idf_path}/tools/cmake/scripts/fail.cmake
         VERBATIM)
 endfunction()
 

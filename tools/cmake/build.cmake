@@ -59,22 +59,22 @@ function(idf_build_unset_property property)
 endfunction()
 
 #
-# Retrieve the WDF_PATH repository's version, either using a version
+# Retrieve the IDF_PATH repository's version, either using a version
 # file or Git revision. Sets the IDF_VER build property.
 #
 function(__build_get_idf_git_revision)
-    idf_build_get_property(wdf_path WDF_PATH)
-    git_describe(idf_ver_git "${wdf_path}" "--match=v*.*")
-    if(EXISTS "${wdf_path}/version.txt")
-        file(STRINGS "${wdf_path}/version.txt" idf_ver_t)
-        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${wdf_path}/version.txt")
+    idf_build_get_property(idf_path IDF_PATH)
+    git_describe(idf_ver_git "${idf_path}" "--match=v*.*")
+    if(EXISTS "${idf_path}/version.txt")
+        file(STRINGS "${idf_path}/version.txt" idf_ver_t)
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${idf_path}/version.txt")
     else()
         set(idf_ver_t ${idf_ver_git})
     endif()
     # cut IDF_VER to required 32 characters.
     string(SUBSTRING "${idf_ver_t}" 0 31 idf_ver)
     idf_build_set_property(COMPILE_DEFINITIONS "-DIDF_VER=\"${idf_ver}\"" APPEND)
-    git_submodule_check("${wdf_path}")
+    git_submodule_check("${idf_path}")
     idf_build_set_property(IDF_VER ${idf_ver})
 endfunction()
 
@@ -119,7 +119,7 @@ endfunction()
 # Initialize the build. This gets called upon inclusion of idf.cmake to set internal
 # properties used for the processing phase of the build.
 #
-function(__build_init wdf_path)
+function(__build_init idf_path)
 
     set(target ${IDF_TARGET})
 
@@ -132,17 +132,17 @@ function(__build_init wdf_path)
     file(TO_CMAKE_PATH ${PYTHON} PYTHON)
     idf_build_set_property(PYTHON ${PYTHON})
 
-    idf_build_set_property(WDF_PATH ${wdf_path})
+    idf_build_set_property(IDF_PATH ${idf_path})
 
-    idf_build_set_property(__PREFIX wdf)
+    idf_build_set_property(__PREFIX idf)
     idf_build_set_property(__CHECK_PYTHON 1)
 
     __build_set_default_build_specifications()
 
     # Add internal components to the build
-    idf_build_get_property(wdf_path WDF_PATH)
+    idf_build_get_property(idf_path IDF_PATH)
     idf_build_get_property(prefix __PREFIX)
-    file(GLOB component_dirs ${wdf_path}/components/*)
+    file(GLOB component_dirs ${idf_path}/components/*)
     list(SORT component_dirs)
     foreach(component_dir ${component_dirs})
         # A potential component must be a directory
@@ -263,9 +263,9 @@ function(__build_check_python)
     idf_build_get_property(check __CHECK_PYTHON)
     if(check)
         idf_build_get_property(python PYTHON)
-        idf_build_get_property(wdf_path WDF_PATH)
+        idf_build_get_property(idf_path IDF_PATH)
         message(STATUS "Checking Python dependencies...")
-        execute_process(COMMAND "${python}" "${wdf_path}/tools/check_python_dependencies.py"
+        execute_process(COMMAND "${python}" "${idf_path}/tools/check_python_dependencies.py"
             RESULT_VARIABLE result)
         if(result EQUAL 1)
             # check_python_dependencies returns error code 1 on failure
@@ -395,7 +395,7 @@ macro(idf_build_process target)
     __build_set_default(SDKCONFIG_DEFAULTS "")
 
     # Check for required Python modules
-    # __build_check_python()
+    __build_check_python()
 
     # Perform early expansion of component CMakeLists.txt in CMake scripting mode.
     # It is here we retrieve the public and private requirements of each component.
@@ -449,8 +449,8 @@ macro(idf_build_process target)
     # subdirectories, creating library targets, linking libraries, etc.)
     __build_process_project_includes()
 
-    idf_build_get_property(wdf_path WDF_PATH)
-    add_subdirectory(${wdf_path} ${build_dir}/esp-wdf)
+    idf_build_get_property(idf_path IDF_PATH)
+    add_subdirectory(${idf_path} ${build_dir}/esp-wdf)
 
     unset(ESP_PLATFORM)
 endmacro()

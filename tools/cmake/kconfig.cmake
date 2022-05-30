@@ -7,7 +7,7 @@ function(__kconfig_init)
         set(MAKE_COMMMAND "make")
     endif()
 
-    idf_build_get_property(wdf_path WDF_PATH)
+    idf_build_get_property(idf_path IDF_PATH)
     if(CMAKE_HOST_WIN32 AND DEFINED ENV{MSYSTEM})
         # Prefer a prebuilt mconf-idf on Windows
         find_program(WINPTY winpty)
@@ -34,7 +34,7 @@ function(__kconfig_init)
                 # Use the existing Makefile to build mconf (out of tree) when needed
                 #
                 set(MCONF ${CMAKE_BINARY_DIR}/kconfig_bin/mconf-idf)
-                set(src_path ${wdf_path}/tools/kconfig)
+                set(src_path ${idf_path}/tools/kconfig)
 
                 # note: we preemptively remove any build files from the src dir
                 # as we're building out of tree, but don't want build system to
@@ -88,9 +88,9 @@ function(__kconfig_init)
         idf_build_set_property(__MENUCONFIG_DEPENDS "${menuconfig_depends}")
     endif()
 
-    idf_build_get_property(wdf_path WDF_PATH)
-    idf_build_set_property(__ROOT_KCONFIG ${wdf_path}/Kconfig)
-    idf_build_set_property(__ROOT_SDKCONFIG_RENAME ${wdf_path}/sdkconfig.rename)
+    idf_build_get_property(idf_path IDF_PATH)
+    idf_build_set_property(__ROOT_KCONFIG ${idf_path}/Kconfig)
+    idf_build_set_property(__ROOT_SDKCONFIG_RENAME ${idf_path}/sdkconfig.rename)
     idf_build_set_property(__OUTPUT_SDKCONFIG 1)
 endfunction()
 
@@ -177,7 +177,7 @@ function(__kconfig_generate_config sdkconfig sdkconfig_defaults)
     idf_build_set_property(KCONFIG_PROJBUILDS "${kconfig_projbuilds}")
 
     idf_build_get_property(idf_target IDF_TARGET)
-    idf_build_get_property(wdf_path WDF_PATH)
+    idf_build_get_property(idf_path IDF_PATH)
     idf_build_get_property(idf_env_fpga __IDF_ENV_FPGA)
 
     string(REPLACE ";" " " kconfigs "${kconfigs}")
@@ -193,7 +193,7 @@ function(__kconfig_generate_config sdkconfig sdkconfig_defaults)
     # to work around command line length limits for execute_process
     # on Windows & CMake < 3.11
     set(config_env_path "${CMAKE_CURRENT_BINARY_DIR}/config.env")
-    configure_file("${wdf_path}/tools/kconfig_new/config.env.in" ${config_env_path})
+    configure_file("${idf_path}/tools/kconfig_new/config.env.in" ${config_env_path})
     idf_build_set_property(CONFIG_ENV_PATH ${config_env_path})
 
     if(sdkconfig_defaults)
@@ -215,11 +215,11 @@ function(__kconfig_generate_config sdkconfig sdkconfig_defaults)
     idf_build_get_property(python PYTHON)
 
     set(prepare_kconfig_files_command
-        ${python} ${wdf_path}/tools/kconfig_new/prepare_kconfig_files.py
+        ${python} ${idf_path}/tools/kconfig_new/prepare_kconfig_files.py
         --env-file ${config_env_path})
 
     set(confgen_basecommand
-        ${python} ${wdf_path}/tools/kconfig_new/confgen.py
+        ${python} ${idf_path}/tools/kconfig_new/confgen.py
         --kconfig ${root_kconfig}
         --sdkconfig-rename ${root_sdkconfig_rename}
         --config ${sdkconfig}
@@ -278,7 +278,7 @@ function(__kconfig_generate_config sdkconfig sdkconfig_defaults)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${sdkconfig_cmake}")
 
     # Or if the config generation tool changes
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${wdf_path}/tools/kconfig_new/confgen.py")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${idf_path}/tools/kconfig_new/confgen.py")
 
     set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" APPEND PROPERTY
                 ADDITIONAL_MAKE_CLEAN_FILES "${sdkconfig_header}" "${sdkconfig_cmake}")
@@ -296,7 +296,7 @@ function(__kconfig_generate_config sdkconfig sdkconfig_defaults)
         set(MENUCONFIG_CMD ${mconf})
     else()
         set(MENUCONFIG_CMD ${python} -m menuconfig)
-        set(TERM_CHECK_CMD ${python} ${wdf_path}/tools/check_term.py)
+        set(TERM_CHECK_CMD ${python} ${idf_path}/tools/check_term.py)
     endif()
 
     # Generate the menuconfig target
@@ -332,9 +332,9 @@ function(__kconfig_generate_config sdkconfig sdkconfig_defaults)
     # Custom target to run confserver.py from the build tool
     add_custom_target(confserver
         COMMAND ${prepare_kconfig_files_command}
-        COMMAND ${PYTHON} ${WDF_PATH}/tools/kconfig_new/confserver.py
+        COMMAND ${PYTHON} ${IDF_PATH}/tools/kconfig_new/confserver.py
         --env-file ${config_env_path}
-        --kconfig ${WDF_PATH}/Kconfig
+        --kconfig ${IDF_PATH}/Kconfig
         --sdkconfig-rename ${root_sdkconfig_rename}
         --config ${sdkconfig}
         VERBATIM

@@ -196,7 +196,7 @@ endfunction()
 # using a separate CMake script (the expansion is performed in a separate instance of CMake in scripting mode).
 #
 function(__component_get_requirements)
-    idf_build_get_property(wdf_path WDF_PATH)
+    idf_build_get_property(idf_path IDF_PATH)
 
     idf_build_get_property(build_dir BUILD_DIR)
     set(build_properties_file ${build_dir}/build_properties.temp.cmake)
@@ -211,7 +211,7 @@ function(__component_get_requirements)
         -D "BUILD_PROPERTIES_FILE=${build_properties_file}"
         -D "COMPONENT_PROPERTIES_FILE=${component_properties_file}"
         -D "COMPONENT_REQUIRES_FILE=${component_requires_file}"
-        -P "${wdf_path}/tools/cmake/scripts/component_get_requirements.cmake"
+        -P "${idf_path}/tools/cmake/scripts/component_get_requirements.cmake"
         RESULT_VARIABLE result
         ERROR_VARIABLE error)
 
@@ -228,7 +228,7 @@ function(__component_get_requirements)
             "idf_component_manager.prepare_components"
             "--project_dir=${project_dir}"
             "inject_requirements"
-            "--wdf_path=${wdf_path}"
+            "--idf_path=${idf_path}"
             "--build_dir=${build_dir}"
             "--component_requires_file=${component_requires_file}"
             RESULT_VARIABLE result
@@ -532,8 +532,8 @@ function(idf_component_mock)
     set(MOCK_GENERATED_HEADERS "")
     set(MOCK_GENERATED_SRCS "")
     set(MOCK_FILES "")
-    set(WDF_PATH $ENV{WDF_PATH})
-    set(CMOCK_DIR "${WDF_PATH}/components/cmock/CMock")
+    set(IDF_PATH $ENV{IDF_PATH})
+    set(CMOCK_DIR "${IDF_PATH}/components/cmock/CMock")
     set(MOCK_GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}")
     list(APPEND __INCLUDE_DIRS "${MOCK_GEN_DIR}/mocks")
 
@@ -562,7 +562,7 @@ function(idf_component_mock)
     add_custom_command(
         OUTPUT ${MOCK_GENERATED_SRCS} ${MOCK_GENERATED_HEADERS}
         DEPENDS ruby_found
-        COMMAND ${CMAKE_COMMAND} -E env "UNITY_DIR=${WDF_PATH}/components/unity/unity"
+        COMMAND ${CMAKE_COMMAND} -E env "UNITY_DIR=${IDF_PATH}/components/unity/unity"
             ruby
             ${CMOCK_DIR}/lib/cmock.rb
             -o${CMAKE_CURRENT_SOURCE_DIR}/mock/mock_config.yaml
