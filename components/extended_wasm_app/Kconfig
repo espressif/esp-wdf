@@ -1,0 +1,5 @@
+menu "Extended WASM Applications"
+    config WDF_EXT_WASM_APP_MQTT
+        bool "Enable ESP-MQTT"
+        default y
+endmenu

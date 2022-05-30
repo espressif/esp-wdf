@@ -1,0 +1,54 @@
+menu "Example Configuration"
+
+    choice BROKER_URI
+        prompt "Broker URL"
+        default TCP_BROKER_URI
+        help
+            URL of an mqtt broker which this example connects to.
+        
+        config SSL_BROKER_URI
+            bool "SSL"
+        config TCP_BROKER_URI
+            bool "TCP"
+        config WS_BROKER_URI
+            bool "WS"
+        config WSS_BROKER_URI
+            bool "WSS"
+    endchoice
+
+    config BROKER_URI
+        string
+        default "mqtts://mqtt.eclipseprojects.io:8883" if SSL_BROKER_URI
+        default "mqtt://mqtt.eclipseprojects.io" if TCP_BROKER_URI
+        default "ws://mqtt.eclipseprojects.io:80/mqtt" if WS_BROKER_URI
+        default "wss://mqtt.eclipseprojects.io:443/mqtt" if WSS_BROKER_URI
+
+    choice EVENT_TYPE
+        prompt "Event Type"
+        default EVENT_MQTT
+        help
+            Event type which this example used.
+        
+        config EVENT_MQTT
+            bool "MQTT Event"
+        config EVENT_LOOP
+            bool "LOOP Event"
+    endchoice
+
+    config EVENT_TYPE
+        int
+        default 0 if EVENT_MQTT
+        default 1 if EVENT_LOOP
+
+    config BROKER_CERTIFICATE_OVERRIDE
+        string "Broker certificate override"
+        default ""
+        help
+            Please leave empty if broker certificate included from a textfile; otherwise fill in a base64 part of PEM
+            format certificate
+
+    config BROKER_CERTIFICATE_OVERRIDDEN
+        bool
+        default y if BROKER_CERTIFICATE_OVERRIDE != ""
+
+endmenu
