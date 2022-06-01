@@ -23,4 +23,16 @@ menu "WAMR Configuration"
                 module of WAMR's app-framework, use function: `api_timer_create`, you need
                 to enable this option.
     endif
+
+    menu "Extended Libc Configuration"
+        config WAMR_EXTENDED_LIBC_ERRNO
+            bool "Enable \"errno\""
+            default n
+            depends on COMPILER_WASI_NO_USE_STDLIB
+            help
+                Select this option, then function "libc_builtin_set_errno" will be exported
+                for runtime to call.
+                Set this option when you use libc_builtin and open/read/write/close/... APIs.
+                Otherwise, you can disable this option to reduce the size of WASM application.
+    endmenu
 endmenu
