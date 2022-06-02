@@ -41,6 +41,14 @@ typedef __UINTPTR_TYPE__	uintptr_t;
 # define UINT32_MAX		(4294967295U)
 # define UINT64_MAX		(__UINT64_C(18446744073709551615))
 
+#define INT8_C(c)  c
+#define INT16_C(c) c
+#define INT32_C(c) c
+
+#define UINT8_C(c)  c
+#define UINT16_C(c) c
+#define UINT32_C(c) c ## U
+
 #ifdef __cplusplus
 }
 #endif
