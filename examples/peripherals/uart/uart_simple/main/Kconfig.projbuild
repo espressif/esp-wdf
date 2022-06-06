@@ -1,0 +1,19 @@
+menu "Example Configuration"
+
+    choice UART_DEVICE
+        prompt "Select UART Device"
+        default UART_DEVICE_USB_SERIAL_JTAG_CONTROLLER
+        help
+            Select UART Device for exmaple.
+            please note that not all developemnt boards support all following
+            devices, and even the boards support following devices, users
+            should also initialize target VFS drivers in "Wasmachine".
+
+        config UART_DEVICE_UART0
+            bool "UART0"
+
+        config UART_DEVICE_USB_SERIAL_JTAG_CONTROLLER
+            bool "USB Serial/JTAG Controller"
+    endchoice
+
+endmenu
