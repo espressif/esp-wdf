@@ -34,5 +34,25 @@ menu "WAMR Configuration"
                 for runtime to call.
                 Set this option when you use libc_builtin and open/read/write/close/... APIs.
                 Otherwise, you can disable this option to reduce the size of WASM application.
+
+        config WAMR_EXTENDED_LIBC_IOCTL
+            bool "Enable Extended \"ioctl\""
+            default y
+            depends on COMPILER_WASI_NO_USE_STDLIB
+            help
+                Select this option, then extended "ioctl" is enable, users can use peripheral
+                VFS drivers' ioctl function, and input structure's members are transformed to
+                data sequence to avoid issue of passing structure pointer to runtime directly.
+
+
+        menu "Peripherals of Standard I/O"
+            depends on WAMR_EXTENDED_LIBC_IOCTL
+
+            config IOCTL_GPIO
+                bool "GPIO"
+                default y
+                help
+                    Select this option, then users can use GPIO command in function "ioctl".
+        endmenu
     endmenu
 endmenu

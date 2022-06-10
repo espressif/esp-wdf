@@ -17,8 +17,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdint.h>
+#include <sys/ioctl.h>
 
 #include "sdkconfig.h"
+#include "ioctl/esp_gpio_ioctl.h"
 
 #define _COMBINE(a, b)      a #b
 #define COMBINE(a, b)       _COMBINE(a, b)
@@ -33,6 +35,7 @@ void on_init(void)
 {
     int fd;
     int ret;
+    gpioc_cfg_t cfg;
     uint8_t state = 0;
     const char device[] = GPIO_DEVICE;
 
@@ -42,6 +45,14 @@ void on_init(void)
         return;
     } else {
         printf("Opening device %s for writing OK, fd=%d.\n", device, fd);
+    }
+
+    cfg.flags = GPIOC_PULLUP_EN;
+    ret = ioctl(fd, GPIOCSCFG, &cfg);
+    if (ret < 0) {
+        printf("Set GPIO-%d pull-up failed, errno=%d.\n", GPIO_PIN_NUM, errno);
+        close(fd);
+        return;
     }
 
     /**
