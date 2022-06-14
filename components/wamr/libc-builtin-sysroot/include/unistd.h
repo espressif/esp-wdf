@@ -22,6 +22,9 @@ ssize_t write(int, const void *, size_t);
 ssize_t pread(int, void *, size_t, off_t);
 ssize_t pwrite(int, const void *, size_t, off_t);
 
+unsigned sleep(unsigned);
+int usleep(unsigned);
+
 #ifdef __cplusplus
 }
 #endif
