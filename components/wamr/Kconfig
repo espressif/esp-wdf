@@ -53,6 +53,12 @@ menu "WAMR Configuration"
                 default y
                 help
                     Select this option, then users can use GPIO command in function "ioctl".
-        endmenu
+
+            config IOCTL_I2C
+                bool "I2C"
+                default y
+                help
+                    Select this option, then users can use I2C command in function "ioctl".
+    endmenu
     endmenu
 endmenu
