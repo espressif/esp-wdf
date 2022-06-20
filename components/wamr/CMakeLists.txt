@@ -20,6 +20,11 @@ if(CONFIG_WAMR_EXTENDED_LIBC_IOCTL)
     list(APPEND priv_include_dir "libc-builtin-extended/private_include")
 endif()
 
+if(CONFIG_WAMR_EXTENDED_SOCKET)
+    list(APPEND srcs "lib-socket/src/wasi/wasi_socket_ext.c")
+    list(APPEND include_dirs "lib-socket/inc")
+endif()
+
 idf_component_register(SRCS         ${srcs}
                        INCLUDE_DIRS ${include_dirs}
                        PRIV_INCLUDE_DIRS ${priv_include_dir}

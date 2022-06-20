@@ -61,4 +61,11 @@ menu "WAMR Configuration"
                     Select this option, then users can use I2C command in function "ioctl".
     endmenu
     endmenu
+
+    menu "Extended Socket Configuration"
+        config WAMR_EXTENDED_SOCKET
+                bool "Enable Extended socket"
+                default y
+                depends on !COMPILER_WASI_NO_USE_STDLIB
+    endmenu
 endmenu

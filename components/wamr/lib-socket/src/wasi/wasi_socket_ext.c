@@ -14,7 +14,6 @@
 
 #define HANDLE_ERROR(error)              \
     if (error != __WASI_ERRNO_SUCCESS) { \
-        errno = error;                   \
         return -1;                       \
     }
 
@@ -92,18 +91,18 @@ sock_addr_remote(__wasi_fd_t fd, struct sockaddr *sock_addr, socklen_t *addrlen)
 int
 accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
-    __wasi_addr_t wasi_addr = { 0 };
-    __wasi_fd_t new_sockfd;
-    __wasi_errno_t error;
+    int ret = -1;
 
-    error = __wasi_sock_accept(sockfd, &new_sockfd);
+    __wasi_errno_t error = __wasi_sock_accept(sockfd, 0, &ret);
     HANDLE_ERROR(error)
 
-    // error = sock_addr_remote(new_sockfd, addr, addrlen);
-    // HANDLE_ERROR(error)
-    *addrlen = 0;
+    // Clear sockaddr to indicate undefined address
+    memset(addr, 0, *addrlen);
+    // might be AF_UNIX or AF_INET
+    addr->sa_family = AF_UNSPEC;
+    *addrlen = sizeof(struct sockaddr);
 
-    return new_sockfd;
+    return ret;
 }
 
 int

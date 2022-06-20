@@ -91,22 +91,6 @@ socket(int domain, int type, int protocol);
 #endif
 
 /**
- * Accept a connection on a socket
- * Note: This is similar to `accept`
- */
-int32_t
-__imported_wasi_snapshot_preview1_sock_accept(int32_t arg0, int32_t arg1)
-    __attribute__((__import_module__("wasi_snapshot_preview1"),
-                   __import_name__("sock_accept")));
-
-static inline __wasi_errno_t
-__wasi_sock_accept(__wasi_fd_t fd, __wasi_fd_t *fd_new)
-{
-    return (__wasi_errno_t)__imported_wasi_snapshot_preview1_sock_accept(
-        (int32_t)fd, (int32_t)fd_new);
-}
-
-/**
  * Returns the local address to which the socket is bound.
  *
  * Note: This is similar to `getsockname` in POSIX
