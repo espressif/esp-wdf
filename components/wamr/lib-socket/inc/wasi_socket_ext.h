@@ -88,6 +88,33 @@ sendmsg(int sockfd, const struct msghdr *msg, int flags);
 
 int
 socket(int domain, int type, int protocol);
+
+int 
+getpeername(int sockfd, struct sockaddr *name, socklen_t *namelen);
+
+int
+getsockname(int sockfd, struct sockaddr *name, socklen_t *namelen);
+
+int
+getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
+
+int
+setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
+
+/*
+ * Option flags per-socket. These must match the SOF_ flags in ip.h (checked in init.c)
+ */
+#define SO_REUSEADDR    0x0004 /* Allow local address reuse */
+#define SO_KEEPALIVE    0x0008 /* Keep connections alive */
+#define SO_BROADCAST    0x0020 /* Permit to send and to receive broadcast messages (see IP_SOF_BROADCAST option) */
+
+/*
+ * Additional options, not kept in so_options.
+ */
+#define SO_REUSEPORT    0x0200 /* Allow local address & port reuse */
+#define SO_SNDBUF       0x1001 /* Send buffer size */
+#define SO_RCVBUF       0x1002 /* Receive buffer size */
+
 #endif
 
 /**
@@ -381,15 +408,16 @@ __wasi_sock_set_reuse_port(__wasi_fd_t fd, uint8_t reuse)
  * Note: This is similar to `setsockopt` in POSIX for SO_SNDBUF
  */
 int32_t
-__imported_wasi_snapshot_preview1_sock_set_send_buf_size(int32_t arg0)
+__imported_wasi_snapshot_preview1_sock_set_send_buf_size(int32_t arg0,
+                                                         int32_t arg1)
     __attribute__((__import_module__("wasi_snapshot_preview1"),
                    __import_name__("sock_set_send_buf_size")));
 
 static inline __wasi_errno_t
-__wasi_sock_set_send_buf_size(__wasi_fd_t fd)
+__wasi_sock_set_send_buf_size(__wasi_fd_t fd, __wasi_size_t size)
 {
     return (__wasi_errno_t)
-        __imported_wasi_snapshot_preview1_sock_set_send_buf_size((int32_t)fd);
+        __imported_wasi_snapshot_preview1_sock_set_send_buf_size((int32_t)fd, (int32_t)size);
 }
 
 /**

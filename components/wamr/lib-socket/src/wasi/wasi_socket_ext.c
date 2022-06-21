@@ -285,3 +285,135 @@ socket(int domain, int type, int protocol)
 
     return sockfd;
 }
+
+int
+getpeername(int sockfd, struct sockaddr *name, socklen_t *namelen)
+{
+    __wasi_addr_t wasi_addr = { 0 };
+    __wasi_errno_t error = __wasi_sock_addr_remote(sockfd, (uint8_t *)&wasi_addr, sizeof(wasi_addr));
+    HANDLE_ERROR(error)
+
+    if (IPv4 == wasi_addr.kind) {
+        struct sockaddr_in sock_addr_in = { 0 };
+
+        sock_addr_in.sin_family = AF_INET;
+        sock_addr_in.sin_addr.s_addr = (wasi_addr.addr.ip4.addr.n0 << 24)
+                                       | (wasi_addr.addr.ip4.addr.n1 << 16)
+                                       | (wasi_addr.addr.ip4.addr.n2 << 8)
+                                       | wasi_addr.addr.ip4.addr.n3;
+        sock_addr_in.sin_port = htons(wasi_addr.addr.ip4.port);
+        memcpy(name, &sock_addr_in, sizeof(sock_addr_in));
+
+        *namelen = sizeof(sock_addr_in);
+    }
+    else if (IPv6 == wasi_addr.kind) {
+        // TODO: IPV6
+        return __WASI_ERRNO_AFNOSUPPORT;
+    }
+    else {
+        return __WASI_ERRNO_AFNOSUPPORT;
+    }
+
+    return __WASI_ERRNO_SUCCESS;
+}
+
+int
+getsockname(int sockfd, struct sockaddr *name, socklen_t *namelen)
+{
+    __wasi_addr_t wasi_addr = { 0 };
+    __wasi_errno_t error = __wasi_sock_addr_local(sockfd, (uint8_t *)&wasi_addr, sizeof(wasi_addr));
+    HANDLE_ERROR(error)
+
+    if (IPv4 == wasi_addr.kind) {
+        struct sockaddr_in sock_addr_in = { 0 };
+
+        sock_addr_in.sin_family = AF_INET;
+        sock_addr_in.sin_addr.s_addr = (wasi_addr.addr.ip4.addr.n0 << 24)
+                                       | (wasi_addr.addr.ip4.addr.n1 << 16)
+                                       | (wasi_addr.addr.ip4.addr.n2 << 8)
+                                       | wasi_addr.addr.ip4.addr.n3;
+        sock_addr_in.sin_port = htons(wasi_addr.addr.ip4.port);
+        memcpy(name, &sock_addr_in, sizeof(sock_addr_in));
+
+        *namelen = sizeof(sock_addr_in);
+    }
+    else if (IPv6 == wasi_addr.kind) {
+        // TODO: IPV6
+        return __WASI_ERRNO_AFNOSUPPORT;
+    }
+    else {
+        return __WASI_ERRNO_AFNOSUPPORT;
+    }
+
+    return __WASI_ERRNO_SUCCESS;
+}
+
+int
+getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen)
+{
+    __wasi_errno_t error;
+    __wasi_size_t  value;
+
+    switch (level) {
+        case SOL_SOCKET:
+            switch (optname) {
+                case SO_REUSEADDR:
+                    error = __wasi_sock_get_reuse_addr(sockfd, (uint8_t *)&value);
+                    break;
+                case SO_REUSEPORT:
+                    error = __wasi_sock_get_reuse_port(sockfd, (int8_t *)&value);
+                    break;
+                case SO_SNDBUF:
+                    error = __wasi_sock_get_send_buf_size(sockfd, &value);
+                    break;
+                case SO_RCVBUF:
+                    error = __wasi_sock_get_recv_buf_size(sockfd, &value);
+                    break;
+                default:
+                    error = __WASI_ERRNO_AFNOSUPPORT;
+                    break;
+            }
+            break;
+        default:
+            error = __WASI_ERRNO_AFNOSUPPORT;
+            break;
+    }
+    HANDLE_ERROR(error)
+
+    return __WASI_ERRNO_SUCCESS;
+}
+
+int
+setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen)
+{
+    __wasi_errno_t error;
+    __wasi_size_t  value = *(__wasi_size_t *)optval;
+
+    switch (level) {
+        case SOL_SOCKET:
+            switch (optname) {
+                case SO_REUSEADDR:
+                    error = __wasi_sock_set_reuse_addr(sockfd, value);
+                    break;
+                case SO_REUSEPORT:
+                    error = __wasi_sock_set_reuse_port(sockfd, value);
+                    break;
+                case SO_SNDBUF:
+                    error = __wasi_sock_set_send_buf_size(sockfd, value);
+                    break;
+                case SO_RCVBUF:
+                    error = __wasi_sock_set_recv_buf_size(sockfd, value);
+                    break;
+                default:
+                    error = __WASI_ERRNO_AFNOSUPPORT;
+                    break;
+            }
+            break;
+        default:
+            error = __WASI_ERRNO_AFNOSUPPORT;
+            break;
+    }
+    HANDLE_ERROR(error)
+
+    return __WASI_ERRNO_SUCCESS;
+}
