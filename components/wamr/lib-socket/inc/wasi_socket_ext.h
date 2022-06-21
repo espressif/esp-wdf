@@ -149,7 +149,7 @@ __imported_wasi_snapshot_preview1_addr_resolve(int32_t arg0, int32_t arg1,
                                                int32_t arg2, int32_t arg3,
                                                int32_t arg4)
     __attribute__((__import_module__("wasi_snapshot_preview1"),
-                   __import_name__("addr_resolve")));
+                   __import_name__("sock_addr_resolve")));
 
 static inline __wasi_errno_t
 __wasi_addr_resolve(__wasi_fd_t fd, const char *host, __wasi_ip_port_t port,

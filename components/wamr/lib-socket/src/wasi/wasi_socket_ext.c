@@ -35,8 +35,6 @@ sockaddr_to_wasi_addr(const struct sockaddr *sock_addr, socklen_t addrlen,
 {
     __wasi_errno_t ret = __WASI_ERRNO_SUCCESS;
     if (AF_INET == sock_addr->sa_family) {
-        assert(sizeof(struct sockaddr_in) == addrlen);
-
         ipv4_addr_to_wasi_addr(
             ((struct sockaddr_in *)sock_addr)->sin_addr.s_addr,
             ((struct sockaddr_in *)sock_addr)->sin_port, wasi_addr);
@@ -72,6 +70,38 @@ sock_addr_remote(__wasi_fd_t fd, struct sockaddr *sock_addr, socklen_t *addrlen)
                                        | (wasi_addr.addr.ip4.addr.n2 << 16)
                                        | (wasi_addr.addr.ip4.addr.n1 << 8)
                                        | wasi_addr.addr.ip4.addr.n0;
+        sock_addr_in.sin_port = htons(wasi_addr.addr.ip4.port);
+        memcpy(sock_addr, &sock_addr_in, sizeof(sock_addr_in));
+
+        *addrlen = sizeof(sock_addr_in);
+    }
+    else if (IPv6 == wasi_addr.kind) {
+        // TODO: IPV6
+        return __WASI_ERRNO_AFNOSUPPORT;
+    }
+    else {
+        return __WASI_ERRNO_AFNOSUPPORT;
+    }
+
+    return __WASI_ERRNO_SUCCESS;
+}
+
+__wasi_errno_t
+sock_addr_resolve(__wasi_fd_t fd, const char *restrict host, __wasi_ip_port_t port,
+                    struct sockaddr *sock_addr, socklen_t *addrlen)
+{
+    __wasi_addr_t wasi_addr = { 0 };
+    __wasi_errno_t error = __wasi_addr_resolve(fd, host, port, (uint8_t *)&wasi_addr, sizeof(wasi_addr));
+    HANDLE_ERROR(error)
+
+    if (IPv4 == wasi_addr.kind) {
+        struct sockaddr_in sock_addr_in = { 0 };
+
+        sock_addr_in.sin_family = AF_INET;
+        sock_addr_in.sin_addr.s_addr = (wasi_addr.addr.ip4.addr.n0 << 24)
+                                       | (wasi_addr.addr.ip4.addr.n1 << 16)
+                                       | (wasi_addr.addr.ip4.addr.n2 << 8)
+                                       | wasi_addr.addr.ip4.addr.n3;
         sock_addr_in.sin_port = htons(wasi_addr.addr.ip4.port);
         memcpy(sock_addr, &sock_addr_in, sizeof(sock_addr_in));
 
