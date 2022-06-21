@@ -6,22 +6,22 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
+#include <arpa/inet.h>
+#include <assert.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
-#include <sys/param.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "esp_wifi.h"
-#include "esp_event.h"
+#include <sys/socket.h>
+#include <unistd.h>
+#ifdef __wasi__
+#include <wasi_socket_ext.h>
+#endif
 #include "esp_log.h"
-#include "nvs_flash.h"
-#include "esp_netif.h"
-#include "protocol_examples_common.h"
-
-#include "lwip/err.h"
-#include "lwip/sockets.h"
-#include "lwip/sys.h"
-#include <lwip/netdb.h>
+#include "sdkconfig.h"
 
 
 #define PORT                        CONFIG_EXAMPLE_PORT
@@ -35,6 +35,7 @@ static void do_retransmit(const int sock)
 {
     int len;
     char rx_buffer[128];
+    int errno = 0;
 
     do {
         len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
@@ -60,7 +61,7 @@ static void do_retransmit(const int sock)
     } while (len > 0);
 }
 
-static void tcp_server_task(void *pvParameters)
+static void *tcp_server_task(void *pvParameters)
 {
     char addr_str[128];
     int addr_family = (int)pvParameters;
@@ -70,6 +71,7 @@ static void tcp_server_task(void *pvParameters)
     int keepInterval = KEEPALIVE_INTERVAL;
     int keepCount = KEEPALIVE_COUNT;
     struct sockaddr_storage dest_addr;
+    int errno = 0;
 
     if (addr_family == AF_INET) {
         struct sockaddr_in *dest_addr_ip4 = (struct sockaddr_in *)&dest_addr;
@@ -91,15 +93,16 @@ static void tcp_server_task(void *pvParameters)
     int listen_sock = socket(addr_family, SOCK_STREAM, ip_protocol);
     if (listen_sock < 0) {
         ESP_LOGE(TAG, "Unable to create socket: errno %d", errno);
-        vTaskDelete(NULL);
-        return;
+        return NULL;
     }
+#ifndef __wasi__
     int opt = 1;
     setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 #if defined(CONFIG_EXAMPLE_IPV4) && defined(CONFIG_EXAMPLE_IPV6)
     // Note that by default IPV6 binds to both protocols, it is must be disabled
     // if both protocols used at the same time (used in CI)
     setsockopt(listen_sock, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt));
+#endif
 #endif
 
     ESP_LOGI(TAG, "Socket created");
@@ -129,7 +132,7 @@ static void tcp_server_task(void *pvParameters)
             ESP_LOGE(TAG, "Unable to accept connection: errno %d", errno);
             break;
         }
-
+#ifndef __wasi__
         // Set tcp keepalive option
         setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(int));
         setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, sizeof(int));
@@ -145,6 +148,7 @@ static void tcp_server_task(void *pvParameters)
         }
 #endif
         ESP_LOGI(TAG, "Socket accepted ip address: %s", addr_str);
+#endif
 
         do_retransmit(sock);
 
@@ -154,25 +158,33 @@ static void tcp_server_task(void *pvParameters)
 
 CLEAN_UP:
     close(listen_sock);
-    vTaskDelete(NULL);
+    return NULL;
 }
 
-void app_main(void)
+int
+main(int argc, char *argv[])
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
-    ESP_ERROR_CHECK(example_connect());
+    pthread_t tid[2] = { 0 };
+    int res;
 
 #ifdef CONFIG_EXAMPLE_IPV4
-    xTaskCreate(tcp_server_task, "tcp_server", 4096, (void*)AF_INET, 5, NULL);
+    res = pthread_create(&tid[0], NULL, tcp_server_task, (void*)AF_INET);
+    assert(res == 0);
 #endif
 #ifdef CONFIG_EXAMPLE_IPV6
-    xTaskCreate(tcp_server_task, "tcp_server", 4096, (void*)AF_INET6, 5, NULL);
+    res = pthread_create(&tid[1], NULL, tcp_server_task, (void*)AF_INET6);
+    assert(res == 0);
 #endif
+
+#ifdef CONFIG_EXAMPLE_IPV4
+    res = pthread_join(tid[0], NULL);
+    assert(res == 0);
+#endif
+
+#ifdef CONFIG_EXAMPLE_IPV4
+    res = pthread_join(tid[1], NULL);
+    assert(res == 0);
+#endif
+
+    return res;
 }

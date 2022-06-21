@@ -6,22 +6,20 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
+#include <arpa/inet.h>
+#include <assert.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "esp_system.h"
-#include "esp_wifi.h"
-#include "esp_event.h"
+#include <sys/socket.h>
+#include <unistd.h>
+#ifdef __wasi__
+#include <wasi_socket_ext.h>
+#endif
 #include "esp_log.h"
-#include "nvs_flash.h"
-#include "esp_netif.h"
-#include "protocol_examples_common.h"
-#include "addr_from_stdin.h"
-#include "lwip/err.h"
-#include "lwip/sockets.h"
-
+#include "sdkconfig.h"
 
 #if defined(CONFIG_EXAMPLE_IPV4)
 #define HOST_IP_ADDR CONFIG_EXAMPLE_IPV4_ADDR
@@ -36,32 +34,23 @@
 static const char *TAG = "example";
 static const char *payload = "Message from ESP32 ";
 
-static void tcp_client_task(void *pvParameters)
+static void *tcp_client_task(void *pvParameters)
 {
     char rx_buffer[128];
     char host_ip[] = HOST_IP_ADDR;
     int addr_family = 0;
     int ip_protocol = 0;
+    int errno = 0;
 
     while (1) {
 #if defined(CONFIG_EXAMPLE_IPV4)
         struct sockaddr_in dest_addr;
-        dest_addr.sin_addr.s_addr = inet_addr(host_ip);
-        dest_addr.sin_family = AF_INET;
-        dest_addr.sin_port = htons(PORT);
         addr_family = AF_INET;
         ip_protocol = IPPROTO_IP;
 #elif defined(CONFIG_EXAMPLE_IPV6)
         struct sockaddr_in6 dest_addr = { 0 };
-        inet6_aton(host_ip, &dest_addr.sin6_addr);
-        dest_addr.sin6_family = AF_INET6;
-        dest_addr.sin6_port = htons(PORT);
-        dest_addr.sin6_scope_id = esp_netif_get_netif_impl_index(EXAMPLE_INTERFACE);
         addr_family = AF_INET6;
         ip_protocol = IPPROTO_IPV6;
-#elif defined(CONFIG_EXAMPLE_SOCKET_IP_INPUT_STDIN)
-        struct sockaddr_storage dest_addr = { 0 };
-        ESP_ERROR_CHECK(get_addr_from_stdin(PORT, SOCK_STREAM, &ip_protocol, &addr_family, &dest_addr));
 #endif
         int sock =  socket(addr_family, SOCK_STREAM, ip_protocol);
         if (sock < 0) {
@@ -70,12 +59,97 @@ static void tcp_client_task(void *pvParameters)
         }
         ESP_LOGI(TAG, "Socket created, connecting to %s:%d", host_ip, PORT);
 
+#if defined(CONFIG_EXAMPLE_SOCKET_REUSEADDR) || \
+    defined(CONFIG_EXAMPLE_SOCKET_REUSEPORT) || \
+    defined(CONFIG_EXAMPLE_SOCKET_SNDBUF) || \
+    defined(CONFIG_EXAMPLE_SOCKET_RCVBUF)
+        int optval = 1;
+        socklen_t optlen = sizeof(int);
+
+#if defined(CONFIG_EXAMPLE_SOCKET_REUSEADDR)
+        if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, optlen)) {
+            ESP_LOGE(TAG, "Socket unable to set SO_REUSEADDR: errno %d", errno);
+            break;
+        }
+
+        if (getsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, &optlen)) {
+            ESP_LOGE(TAG, "Socket unable to get SO_REUSEADDR: errno %d", errno);
+            break;
+        }
+#endif
+
+#if defined(CONFIG_EXAMPLE_SOCKET_REUSEPORT)
+        if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &optval, optlen)) {
+            ESP_LOGE(TAG, "Socket unable to set SO_REUSEPORT: errno %d", errno);
+            break;
+        }
+
+        if (getsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &optval, &optlen)) {
+            ESP_LOGE(TAG, "Socket unable to get SO_REUSEPORT: errno %d", errno);
+            break;
+        }
+#endif
+
+#if defined(CONFIG_EXAMPLE_SOCKET_SNDBUF)
+        optval = 744;
+        if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &optval, optlen)) {
+            ESP_LOGE(TAG, "Socket unable to set SO_SNDBUF: errno %d", errno);
+            break;
+        }
+
+        if (getsockopt(sock, SOL_SOCKET, SO_SNDBUF, &optval, &optlen)) {
+            ESP_LOGE(TAG, "Socket unable to get SO_SNDBUF: errno %d", errno);
+            break;
+        }
+#endif
+
+#if defined(CONFIG_EXAMPLE_SOCKET_RCVBUF)
+        optval = 744;
+        if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &optval, optlen)) {
+            ESP_LOGE(TAG, "Socket unable to set SO_RCVBUF: errno %d", errno);
+            break;
+        }
+
+        if (getsockopt(sock, SOL_SOCKET, SO_RCVBUF, &optval, &optlen)) {
+            ESP_LOGE(TAG, "Socket unable to get SO_RCVBUF: errno %d", errno);
+            break;
+        }
+#endif
+
+#endif
+
+        errno = sock_addr_resolve(sock, host_ip, PORT, (struct sockaddr *)&dest_addr, sizeof(struct sockaddr_in));
+        if (errno != 0) {
+            ESP_LOGE(TAG, "Socket unable to resolve: errno %d", errno);
+            break;
+        }
+
         int err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(struct sockaddr_in6));
         if (err != 0) {
             ESP_LOGE(TAG, "Socket unable to connect: errno %d", errno);
             break;
         }
         ESP_LOGI(TAG, "Successfully connected");
+
+#if defined(CONFIG_EXAMPLE_SOCKET_SOCKNAME)
+        struct sockaddr_in  local_addr;
+        socklen_t           local_addr_size = sizeof(local_addr);
+        if (getsockname(sock, (struct sockaddr *)&local_addr, &local_addr_size)) {
+            ESP_LOGE(TAG, "Socket unable to get the local address: errno %d", errno);
+            break;
+        }
+        ESP_LOGI(TAG, "Successfully getsockname %04x %d", local_addr.sin_addr.s_addr, local_addr.sin_port);
+#endif
+
+#if defined(CONFIG_EXAMPLE_SOCKET_PEERNAME)
+        struct sockaddr_in  remote_addr;
+        socklen_t           remote_addr_size = sizeof(remote_addr);
+        if (getpeername(sock, (struct sockaddr *)&remote_addr, &remote_addr_size)) {
+            ESP_LOGE(TAG, "Socket unable to get the remote address: errno %d", errno);
+            break;
+        }
+        ESP_LOGI(TAG, "Successfully getpeername %04x %d", remote_addr.sin_addr.s_addr, remote_addr.sin_port);
+#endif
 
         while (1) {
             int err = send(sock, payload, strlen(payload), 0);
@@ -97,7 +171,6 @@ static void tcp_client_task(void *pvParameters)
                 ESP_LOGI(TAG, "%s", rx_buffer);
             }
 
-            vTaskDelay(2000 / portTICK_PERIOD_MS);
         }
 
         if (sock != -1) {
@@ -106,20 +179,21 @@ static void tcp_client_task(void *pvParameters)
             close(sock);
         }
     }
-    vTaskDelete(NULL);
+
+    return NULL;
 }
 
-void app_main(void)
+int
+main(int argc, char *argv[])
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    pthread_t t;
+    int res;
 
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
-    ESP_ERROR_CHECK(example_connect());
+    res = pthread_create(&t, NULL, tcp_client_task, NULL);
+    assert(res == 0);
 
-    xTaskCreate(tcp_client_task, "tcp_client", 4096, NULL, 5, NULL);
+    res = pthread_join(t, NULL);
+    assert(res == 0);
+
+    return res;
 }

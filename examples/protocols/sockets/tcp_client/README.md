@@ -13,33 +13,18 @@ There are many host-side tools which can be used to interact with the UDP/TCP se
 One command line tool is [netcat](http://netcat.sourceforge.net) which can send and receive many kinds of packets. 
 Note: please replace `192.168.0.167 3333` with desired IPV4/IPV6 address (displayed in monitor console) and port number in the following command.
 
-In addition to those tools, simple Python scripts can be found under sockets/scripts directory. Every script is designed to interact with one of the examples.
-
 ### TCP server using netcat
 ```
 nc -l 192.168.0.167 3333
 ```
 
-### Python scripts
-Script example_test.py could be used as a counter part to the tcp-client project, ip protocol name (IPv4 or IPv6) shall be stated as argument. Example:
+### Hardware & Software Required
 
-```
-python example_test.py IPv4
-```
-Note that this script is used in automated tests, as well, so the IDF test framework packages need to be imported;
-please add `$IDF_PATH/tools/ci/python_packages` to `PYTHONPATH`.
+This example can be executed in ESP-WASMachine which is based on any ESP32/ESP32-S2/ESP32-S3 series boards, such as ESP-BOX.
 
-## Hardware Required
+### Configure the project
 
-This example can be run on any commonly available ESP32 development board.
-
-## Configure the project
-
-```
-idf.py menuconfig
-```
-
-Set following parameters under Example Configuration Options:
+Open the project configuration menu (`idf.py menuconfig`), set following parameters under Example Configuration Options:
 
 * Set `IP version` of example to be IPV4 or IPV6.
 
@@ -49,21 +34,47 @@ Set following parameters under Example Configuration Options:
 
 * Set `Port` number that represents remote port the example will connect to.
 
-Configure Wi-Fi or Ethernet under "Example Connection Configuration" menu. See "Establishing Wi-Fi or Ethernet Connection" section in [examples/protocols/README.md](../../README.md) for more details.
+## Build the sample
 
-## Build and Flash
-
-Build the project and flash it to the board, then run monitor tool to view serial output:
+You can use the following command to build the project:
 
 ```
-idf.py -p PORT flash monitor
+idf.py build
 ```
 
-(To exit the serial monitor, type ``Ctrl-]``.)
+The generated wasm application will be located under folder `build`, such as `tcp_client.wasm`, etc. 
 
-See the Getting Started Guide for full steps to configure and use ESP-IDF to build projects.
+> Note that `iwasm` of ESP-WASMachine is built with libc-wasi and lib-pthread enabled.
 
+## Run workload
 
-## Troubleshooting
+You need to copy the generated wasm file to `ESP-WASMachine/main/fs_image/wasm` and re-program the file system of ESP-WASMachine by `idf.py -p PORT storage-flash` in ESP-WASMachine project.
 
-Start server first, to receive data sent from the client (application).
+If you have already connected the serial output to you PC, and open a terminal program for the serial port, you will see some serial output like this:
+
+```
+Type 'help' to get the list of commands.
+Use UP/DOWN arrows to navigate through command history.
+Press TAB when typing command name to auto-complete.
+WASMachine>
+```
+
+Start the tcp client, which opens configured IP addr and port, waits for connected with TCP server and receive data sent from the server (application).
+
+```bash
+WASMachine> iwasm --addr-pool=0.0.0.0 wasm/tcp_client.wasm
+```
+
+The output of server is like:
+
+```bash
+Socket created, connecting to 192.168.0.167:3333
+Successfully connected
+Received 1 bytes from 192.168.0.167
+Received 0 bytes from 192.168.0.167:
+
+recv failed: errno 0
+Shutting down socket and restarting...
+Socket created, connecting to 192.168.0.167:3333
+Socket unable to connect: errno 0
+```

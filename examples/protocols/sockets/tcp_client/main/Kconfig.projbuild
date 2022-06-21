@@ -43,9 +43,42 @@ menu "Example Configuration"
 
         config EXAMPLE_SOCKET_IP_INPUT_STRING
             bool "From string"
-
-        config EXAMPLE_SOCKET_IP_INPUT_STDIN
-            bool "From stdin"
     endchoice
+
+    config EXAMPLE_SOCKET_SOCKNAME
+        bool "Example of retrieve the local address"
+        default n
+        help
+            Retrieve the local address to which the socket is bound.
+
+    config EXAMPLE_SOCKET_PEERNAME
+        bool "Example of retrieve the remote address"
+        default n
+        help
+            Retrieve the remote address to which the socket is connected to.
+
+    config EXAMPLE_SOCKET_REUSEADDR
+        bool "Example of address reuse"
+        default n
+        help
+            Retrieve status of address reuse and enable/disable address reuse on a socket.
+    
+    config EXAMPLE_SOCKET_REUSEPORT
+        bool "Example of port reuse"
+        default n
+        help
+            Retrieve status of port reuse and enable/disable port reuse on a socket.
+
+    config EXAMPLE_SOCKET_SNDBUF
+        bool "Example of send buffer"
+        default n
+        help
+            Retrieve and set the size of send buffer on a socket.
+    
+    config EXAMPLE_SOCKET_RCVBUF
+        bool "Example of receive buffer"
+        default n
+        help
+            Retrieve and set the size of receive buffer on a socket.
 
 endmenu
