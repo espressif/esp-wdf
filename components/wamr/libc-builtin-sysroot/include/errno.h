@@ -478,9 +478,6 @@ typedef uint16_t __wasi_errno_t;
 #define EOPNOTSUPP ENOTSUP
 #define EWOULDBLOCK EAGAIN
 
-#define __WASI_ERRNO_ORIGIN_MAX __WASI_ERRNO_NOTCAPABLE
-#define ENODATA (UINT16_C(__WASI_ERRNO_ORIGIN_MAX + 1))
-
 #ifdef __cplusplus
 extern thread_local int errno;
 #else
