@@ -25,6 +25,10 @@ if(CONFIG_WAMR_EXTENDED_SOCKET)
     list(APPEND include_dirs "lib-socket/inc")
 endif()
 
+if(NOT CONFIG_COMPILER_WASI_NO_USE_STDLIB)
+    list(APPEND include_dirs "libc-wasi/include")
+endif()
+
 idf_component_register(SRCS         ${srcs}
                        INCLUDE_DIRS ${include_dirs}
                        PRIV_INCLUDE_DIRS ${priv_include_dir}
