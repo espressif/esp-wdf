@@ -6,6 +6,8 @@
 #ifndef _WAMR_LIBC_STDIO_H
 #define _WAMR_LIBC_STDIO_H
 
+#include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,9 +21,9 @@ typedef unsigned long size_t;
 int printf(const char *format, ...);
 int putchar(int c);
 int snprintf(char *str, size_t size, const char *format, ...);
+int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 int sprintf(char *str, const char *format, ...);
 int puts(char *string);
-
 
 #ifdef __cplusplus
 }
