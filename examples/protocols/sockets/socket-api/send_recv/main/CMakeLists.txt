@@ -1,0 +1,1 @@
+idf_component_register(SRCS send_recv.c)
