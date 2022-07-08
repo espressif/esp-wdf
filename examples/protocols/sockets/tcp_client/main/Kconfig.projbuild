@@ -1,0 +1,84 @@
+menu "Example Configuration"
+
+    choice EXAMPLE_IP_MODE
+        prompt "IP Version"
+        depends on EXAMPLE_SOCKET_IP_INPUT_STRING
+        help
+            Example can use either IPV4 or IPV6.
+
+        config EXAMPLE_IPV4
+            bool "IPV4"
+
+        config EXAMPLE_IPV6
+            bool "IPV6"
+
+    endchoice
+
+    config EXAMPLE_IPV4_ADDR
+        string "IPV4 Address"
+        default "192.168.0.165"
+        depends on EXAMPLE_IPV4
+        help
+            The example will connect to this IPV4 address.
+
+    config EXAMPLE_IPV6_ADDR
+        string "IPV6 Address"
+        default "FE80::30AD:E57B:C212:68AD"
+        depends on EXAMPLE_IPV6
+        help
+            The example will connect to this IPV6 address.
+
+    config EXAMPLE_PORT
+        int "Port"
+        range 0 65535
+        default 3333
+        help
+            The remote port to which the client example will connect to.
+
+    choice EXAMPLE_SOCKET_IP_INPUT
+        prompt "Socket example source"
+        default EXAMPLE_SOCKET_IP_INPUT_STRING
+        help
+            Selects the input source of the IP used in the example.
+
+        config EXAMPLE_SOCKET_IP_INPUT_STRING
+            bool "From string"
+    endchoice
+
+    config EXAMPLE_SOCKET_SOCKNAME
+        bool "Example of retrieve the local address"
+        default n
+        help
+            Retrieve the local address to which the socket is bound.
+
+    config EXAMPLE_SOCKET_PEERNAME
+        bool "Example of retrieve the remote address"
+        default n
+        help
+            Retrieve the remote address to which the socket is connected to.
+
+    config EXAMPLE_SOCKET_REUSEADDR
+        bool "Example of address reuse"
+        default n
+        help
+            Retrieve status of address reuse and enable/disable address reuse on a socket.
+    
+    config EXAMPLE_SOCKET_REUSEPORT
+        bool "Example of port reuse"
+        default n
+        help
+            Retrieve status of port reuse and enable/disable port reuse on a socket.
+
+    config EXAMPLE_SOCKET_SNDBUF
+        bool "Example of send buffer"
+        default n
+        help
+            Retrieve and set the size of send buffer on a socket.
+    
+    config EXAMPLE_SOCKET_RCVBUF
+        bool "Example of receive buffer"
+        default n
+        help
+            Retrieve and set the size of receive buffer on a socket.
+
+endmenu
