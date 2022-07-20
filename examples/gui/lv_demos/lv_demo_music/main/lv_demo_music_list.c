@@ -10,6 +10,7 @@
 #if LV_USE_DEMO_MUSIC
 
 #include "lv_demo_music_main.h"
+#include "esp_lvgl.h"
 
 /*********************
  *      DEFINES
@@ -53,11 +54,11 @@ LV_IMG_DECLARE(img_lv_demo_music_btn_list_pause);
 lv_obj_t * _lv_demo_music_list_create(lv_obj_t * parent)
 {
 #if LV_DEMO_MUSIC_LARGE
-    font_small = &lv_font_montserrat_16;
-    font_medium = &lv_font_montserrat_22;
+    font_small = lv_font_get_font(LV_FONT_MONTSERRAT_16_FONT);
+    font_medium = lv_font_get_font(LV_FONT_MONTSERRAT_22_FONT);
 #else
-    font_small = &lv_font_montserrat_12;
-    font_medium = &lv_font_montserrat_16;
+    font_small = lv_font_get_font(LV_FONT_MONTSERRAT_12_FONT);
+    font_medium = lv_font_get_font(LV_FONT_MONTSERRAT_16_FONT);
 #endif
 
     lv_style_init(&style_scrollbar);

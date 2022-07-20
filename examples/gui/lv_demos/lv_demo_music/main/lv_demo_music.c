@@ -158,11 +158,11 @@ static void auto_step_cb(lv_timer_t * t)
     static uint32_t state = 0;
 
 #if LV_DEMO_MUSIC_LARGE
-    const lv_font_t * font_small = &lv_font_montserrat_22;
-    const lv_font_t * font_large = &lv_font_montserrat_32;
+    font_small = lv_font_get_font(LV_FONT_MONTSERRAT_22_FONT);
+    font_large = lv_font_get_font(LV_FONT_MONTSERRAT_32_FONT);
 #else
-    const lv_font_t * font_small = &lv_font_montserrat_12;
-    const lv_font_t * font_large = &lv_font_montserrat_16;
+    font_small = lv_font_get_font(LV_FONT_MONTSERRAT_12_FONT);
+    font_large = lv_font_get_font(LV_FONT_MONTSERRAT_16_FONT);
 #endif
 
     switch(state) {

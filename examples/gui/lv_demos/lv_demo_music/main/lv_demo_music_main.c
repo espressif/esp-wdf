@@ -8,6 +8,7 @@
  *********************/
 #include "lv_demo_music_main.h"
 #if LV_USE_DEMO_MUSIC
+#include "esp_lvgl.h"
 
 #include "lv_demo_music_list.h"
 #include "assets/spectrum_1.h"
@@ -105,11 +106,11 @@ static const uint16_t rnd_array[30] = {994, 285, 553, 11, 792, 707, 966, 641, 85
 lv_obj_t * _lv_demo_music_main_create(lv_obj_t * parent)
 {
 #if LV_DEMO_MUSIC_LARGE
-    font_small = &lv_font_montserrat_22;
-    font_large = &lv_font_montserrat_32;
+    font_small = lv_font_get_font(LV_FONT_MONTSERRAT_22_FONT);
+    font_large = lv_font_get_font(LV_FONT_MONTSERRAT_32_FONT);
 #else
-    font_small = &lv_font_montserrat_12;
-    font_large = &lv_font_montserrat_16;
+    font_small = lv_font_get_font(LV_FONT_MONTSERRAT_12_FONT);
+    font_large = lv_font_get_font(LV_FONT_MONTSERRAT_16_FONT);
 #endif
 
     /*Create the content of the music player*/
@@ -453,7 +454,10 @@ static lv_obj_t * create_title_box(lv_obj_t * parent)
     lv_obj_set_style_text_font(title_label, font_large, 0);
     lv_obj_set_style_text_color(title_label, lv_color_hex(0x504d6d), 0);
     lv_label_set_text(title_label, _lv_demo_music_get_title(track_id));
-    lv_obj_set_height(title_label, lv_font_get_line_height(font_large) * 3 / 2);
+    
+    lv_coord_t height;
+    lv_font_get_data(font_large, LV_FONT_LINE_HEIGHT, &height, sizeof(height));
+    lv_obj_set_height(title_label, height * 3 / 2);
 
     artist_label = lv_label_create(cont);
     lv_obj_set_style_text_font(artist_label, font_small, 0);
@@ -728,8 +732,12 @@ static void spectrum_draw_event_cb(lv_event_t * e)
 
         lv_point_t poly[4];
         lv_point_t center;
-        center.x = obj->coords.x1 + lv_obj_get_width(obj) / 2;
-        center.y = obj->coords.y1 + lv_obj_get_height(obj) / 2;
+
+        lv_area_t obj_area;
+        lv_obj_get_data(obj, LV_OBJ_COORDS, &obj_area, sizeof(obj_area));
+
+        center.x = obj_area.x1 + lv_obj_get_width(obj) / 2;
+        center.y = obj_area.y1 + lv_obj_get_height(obj) / 2;
 
         lv_draw_rect_dsc_t draw_dsc;
         lv_draw_rect_dsc_init(&draw_dsc);
