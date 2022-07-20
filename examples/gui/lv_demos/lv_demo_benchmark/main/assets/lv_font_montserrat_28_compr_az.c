@@ -1,4 +1,4 @@
-#include "../../lv_demo.h"
+#include "lvgl.h"
 
 /*******************************************************************************
  * Size: 28 px
@@ -489,8 +489,8 @@ static lv_font_fmt_txt_dsc_t font_dsc = {
 
 /*Initialize a public general font descriptor*/
 lv_font_t lv_font_benchmark_montserrat_28_compr_az = {
-    .get_glyph_dsc = lv_font_get_glyph_dsc_fmt_txt,    /*Function pointer to get glyph's data*/
-    .get_glyph_bitmap = lv_font_get_bitmap_fmt_txt,    /*Function pointer to get glyph's bitmap*/
+    .get_glyph_dsc = NULL,    /* Set to be NULL and runtime uses lv_font_get_glyph_dsc_fmt_txt*/
+    .get_glyph_bitmap = NULL,    /* Set to be NULL and runtime uses lv_font_get_bitmap_fmt_txt */
     .line_height = 26,          /*The maximum line height required by the font*/
     .base_line = 5,             /*Baseline measured from the bottom of the line*/
 #if !(LVGL_VERSION_MAJOR == 6 && LVGL_VERSION_MINOR == 0)
