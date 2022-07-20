@@ -6,7 +6,8 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "../lv_demo.h"
+#include "lv_demo_stress.h"
+#include "esp_lvgl.h"
 
 #if LV_USE_DEMO_STRESS
 /*********************
@@ -437,7 +438,7 @@ static void auto_del(lv_obj_t * obj, uint32_t delay)
 
 static void msgbox_del(lv_timer_t * tmr)
 {
-    lv_msgbox_close(tmr->user_data);
+    lv_msgbox_close((lv_obj_t *)lv_timer_get_user_data(tmr));
 }
 
 static void set_y_anim(void * obj, int32_t v)
