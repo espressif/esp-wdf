@@ -6,13 +6,57 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "../../lv_demo.h"
+#include "lv_demo_widgets.h"
+#include "esp_lvgl.h"
 
 #if LV_USE_DEMO_WIDGETS
 
 /*********************
  *      DEFINES
  *********************/
+
+#if 0
+#define LV_WRAPPER_DEBUG() \
+    printf("line=%d failed to get o=%p t=%d &p=%p s=%ld\n", __LINE__, o, t, &p, sizeof(p));
+#else
+#define LV_WRAPPER_DEBUG()
+#endif
+
+#define LV_OBJ_DRAW_PART_DSC_GET_DATA(o, t, p)                                  \
+({                                                                               \
+    int _ret = lv_obj_draw_part_dsc_get_data(o, t, &p, sizeof(p));              \
+    if (_ret) {                                                                 \
+        LV_WRAPPER_DEBUG();                                                                \
+    }                                                                           \
+    _ret; \
+})
+
+#define LV_OBJ_DRAW_PART_DSC_SET_DATA(o, t, p)                                  \
+({                                                                               \
+    int _ret = lv_obj_draw_part_dsc_set_data(o, t, &p, sizeof(p));              \
+    if (_ret) {                                                                 \
+        LV_WRAPPER_DEBUG();    \
+    }                                                                           \
+    _ret; \
+})
+
+#define LV_CHART_SERIES_GET_DATA(o, t, p)                                  \
+({                                                                               \
+    int _ret = lv_chart_series_get_data(o, t, &p, sizeof(p));              \
+    if (_ret) {                                                                 \
+        LV_WRAPPER_DEBUG();    \
+    }                                                                           \
+    _ret; \
+})
+
+#define LV_OBJ_GET_DATA(o, t, p)                                  \
+({                                                                               \
+    int _ret = lv_obj_get_data(o, t, &p, sizeof(p));              \
+    if (_ret) {                                                                 \
+        LV_WRAPPER_DEBUG();    \
+    }                                                                           \
+    _ret; \
+})
 
 /**********************
  *      TYPEDEFS
@@ -94,43 +138,43 @@ void lv_demo_widgets(void)
     else if(LV_HOR_RES < 720) disp_size = DISP_MEDIUM;
     else disp_size = DISP_LARGE;
 
-    font_large = LV_FONT_DEFAULT;
-    font_normal = LV_FONT_DEFAULT;
+    font_large = lv_font_get_font(LV_FONT_MONTSERRAT_14_FONT);
+    font_normal = lv_font_get_font(LV_FONT_MONTSERRAT_14_FONT);
 
     lv_coord_t tab_h;
     if(disp_size == DISP_LARGE) {
         tab_h = 70;
 #if LV_FONT_MONTSERRAT_24
-        font_large     =  &lv_font_montserrat_24;
+        font_large     =  lv_font_get_font(LV_FONT_MONTSERRAT_14_FONT);
 #else
         LV_LOG_WARN("LV_FONT_MONTSERRAT_24 is not enabled for the widgets demo. Using LV_FONT_DEFAULT instead.");
 #endif
 #if LV_FONT_MONTSERRAT_16
-        font_normal    =  &lv_font_montserrat_16;
+        font_normal    =  lv_font_get_font(LV_FONT_MONTSERRAT_16_FONT);
 #else
         LV_LOG_WARN("LV_FONT_MONTSERRAT_16 is not enabled for the widgets demo. Using LV_FONT_DEFAULT instead.");
 #endif
     } else if(disp_size == DISP_MEDIUM) {
         tab_h = 45;
 #if LV_FONT_MONTSERRAT_20
-        font_large     =  &lv_font_montserrat_20;
+        font_large     =  lv_font_get_font(LV_FONT_MONTSERRAT_20_FONT);
 #else
         LV_LOG_WARN("LV_FONT_MONTSERRAT_20 is not enabled for the widgets demo. Using LV_FONT_DEFAULT instead.");
 #endif
 #if LV_FONT_MONTSERRAT_14
-        font_normal    =  &lv_font_montserrat_14;
+        font_normal    =  lv_font_get_font(LV_FONT_MONTSERRAT_14_FONT);
 #else
         LV_LOG_WARN("LV_FONT_MONTSERRAT_14 is not enabled for the widgets demo. Using LV_FONT_DEFAULT instead.");
 #endif
     } else { /* disp_size == DISP_SMALL */
         tab_h = 45;
 #if LV_FONT_MONTSERRAT_18
-        font_large     =  &lv_font_montserrat_18;
+        font_large     =  lv_font_get_font(LV_FONT_MONTSERRAT_18_FONT);
 #else
     LV_LOG_WARN("LV_FONT_MONTSERRAT_18 is not enabled for the widgets demo. Using LV_FONT_DEFAULT instead.");
 #endif
 #if LV_FONT_MONTSERRAT_12
-        font_normal    =  &lv_font_montserrat_12;
+        font_normal    =  lv_font_get_font(LV_FONT_MONTSERRAT_12_FONT);
 #else
     LV_LOG_WARN("LV_FONT_MONTSERRAT_12 is not enabled for the widgets demo. Using LV_FONT_DEFAULT instead.");
 #endif
@@ -1253,21 +1297,26 @@ static void slider_event_cb(lv_event_t * e)
     lv_obj_t * obj = lv_event_get_target(e);
 
     if(code == LV_EVENT_REFR_EXT_DRAW_SIZE) {
-        lv_coord_t *s = lv_event_get_param(e);
-        *s = LV_MAX(*s, 60);
+        lv_event_set_ext_draw_size(e, 60);
     } else if(code == LV_EVENT_DRAW_PART_END) {
         lv_obj_draw_part_dsc_t * dsc = lv_event_get_param(e);
-        if(dsc->part == LV_PART_KNOB && lv_obj_has_state(obj, LV_STATE_PRESSED)) {
+
+        uint32_t part;
+        LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_PART, part);
+        if(part == LV_PART_KNOB && lv_obj_has_state(obj, LV_STATE_PRESSED)) {
             char buf[8];
             lv_snprintf(buf, sizeof(buf), "%d", lv_slider_get_value(obj));
 
             lv_point_t text_size;
             lv_txt_get_size(&text_size, buf, font_normal, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
 
+            lv_area_t draw_area;
+            LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_DRAW_AREA, draw_area);
+
             lv_area_t txt_area;
-            txt_area.x1 = dsc->draw_area->x1 + lv_area_get_width(dsc->draw_area) / 2 - text_size.x / 2;
+            txt_area.x1 = draw_area.x1 + lv_area_get_width(&draw_area) / 2 - text_size.x / 2;
             txt_area.x2 = txt_area.x1 + text_size.x;
-            txt_area.y2 = dsc->draw_area->y1 - 10;
+            txt_area.y2 = draw_area.y1 - 10;
             txt_area.y1 = txt_area.y2 - text_size.y;
 
             lv_area_t bg_area;
@@ -1280,13 +1329,17 @@ static void slider_event_cb(lv_event_t * e)
             lv_draw_rect_dsc_init(&rect_dsc);
             rect_dsc.bg_color = lv_palette_darken(LV_PALETTE_GREY, 3);
             rect_dsc.radius = LV_DPX(5);
-            lv_draw_rect(&bg_area, dsc->clip_area, &rect_dsc);
+
+            lv_area_t clip_area;
+            LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_CLIP_AREA, clip_area);
+
+            lv_draw_rect(&bg_area, &clip_area, &rect_dsc);
 
             lv_draw_label_dsc_t label_dsc;
             lv_draw_label_dsc_init(&label_dsc);
             label_dsc.color = lv_color_white();
             label_dsc.font = font_normal;
-            lv_draw_label(&txt_area, dsc->clip_area, &label_dsc, buf, NULL);
+            lv_draw_label(&txt_area, &clip_area, &label_dsc, buf, NULL);
         }
     }
 }
@@ -1302,45 +1355,66 @@ static void chart_event_cb(lv_event_t * e)
     else if(code == LV_EVENT_DRAW_PART_BEGIN) {
         lv_obj_draw_part_dsc_t * dsc = lv_event_get_param(e);
         /*Set the markers' text*/
-        if(dsc->part == LV_PART_TICKS && dsc->id == LV_CHART_AXIS_PRIMARY_X) {
+
+        uint32_t part;
+        uint32_t id;
+        int32_t value;
+
+        LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_PART, part);
+        LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_ID, id);
+        LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_VALUE, value);
+        if(part == LV_PART_TICKS && id == LV_CHART_AXIS_PRIMARY_X) {
             if(lv_chart_get_type(obj) == LV_CHART_TYPE_BAR) {
                 const char * month[] = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"};
-                lv_snprintf(dsc->text, dsc->text_length, "%s", month[dsc->value]);
+                LV_OBJ_DRAW_PART_DSC_SET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_TEXT, month[value]);
             } else {
                 const char * month[] = {"Jan", "Febr", "March", "Apr", "May", "Jun", "July", "Aug", "Sept", "Oct", "Nov", "Dec"};
-                lv_snprintf(dsc->text, dsc->text_length, "%s", month[dsc->value]);
+                LV_OBJ_DRAW_PART_DSC_SET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_TEXT, month[value]);
             }
         }
 
         /*Add the faded area before the lines are drawn */
-        else if(dsc->part == LV_PART_ITEMS) {
+        else if(part == LV_PART_ITEMS) {
 #if LV_DRAW_COMPLEX
+            lv_point_t p1;
+            lv_point_t p2;
+            int ret = LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_P1, p1);
+            ret |= LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_P2, p2);
             /*Add  a line mask that keeps the area below the line*/
-            if(dsc->p1 && dsc->p2) {
+            if(!ret) {
                 lv_draw_mask_line_param_t line_mask_param;
-                lv_draw_mask_line_points_init(&line_mask_param, dsc->p1->x, dsc->p1->y, dsc->p2->x, dsc->p2->y, LV_DRAW_MASK_LINE_SIDE_BOTTOM);
+                lv_draw_mask_line_points_init(&line_mask_param, p1.x, p1.y, p2.x, p2.y, LV_DRAW_MASK_LINE_SIDE_BOTTOM);
                 int16_t line_mask_id = lv_draw_mask_add(&line_mask_param, NULL);
 
                 /*Add a fade effect: transparent bottom covering top*/
                 lv_coord_t h = lv_obj_get_height(obj);
                 lv_draw_mask_fade_param_t fade_mask_param;
-                lv_draw_mask_fade_init(&fade_mask_param, &obj->coords, LV_OPA_COVER, obj->coords.y1 + h / 8, LV_OPA_TRANSP, obj->coords.y2);
+
+                lv_area_t obj_area;
+                LV_OBJ_GET_DATA(obj, LV_OBJ_COORDS, obj_area);
+                lv_draw_mask_fade_init(&fade_mask_param, &obj_area, LV_OPA_COVER, obj_area.y1 + h / 8, LV_OPA_TRANSP, obj_area.y2);
                 int16_t fade_mask_id = lv_draw_mask_add(&fade_mask_param, NULL);
+
+                lv_draw_line_dsc_t line_dsc;
+                LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_LINE_DSC, line_dsc);
 
                 /*Draw a rectangle that will be affected by the mask*/
                 lv_draw_rect_dsc_t draw_rect_dsc;
                 lv_draw_rect_dsc_init(&draw_rect_dsc);
                 draw_rect_dsc.bg_opa = LV_OPA_50;
-                draw_rect_dsc.bg_color = dsc->line_dsc->color;
+                draw_rect_dsc.bg_color = line_dsc.color;
+
+                lv_area_t clip_area;
+                LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_CLIP_AREA, clip_area);
 
                 lv_area_t obj_clip_area;
-                _lv_area_intersect(&obj_clip_area, dsc->clip_area, &obj->coords);
+                _lv_area_intersect(&obj_clip_area, &clip_area, &obj_area);
 
                 lv_area_t a;
-                a.x1 = dsc->p1->x;
-                a.x2 = dsc->p2->x - 1;
-                a.y1 = LV_MIN(dsc->p1->y, dsc->p2->y);
-                a.y2 = obj->coords.y2;
+                a.x1 = p1.x;
+                a.x2 = p2.x - 1;
+                a.y1 = LV_MIN(p1.y, p2.y);
+                a.y2 = obj_area.y2;
                 lv_draw_rect(&a, &obj_clip_area, &draw_rect_dsc);
 
                 /*Remove the masks*/
@@ -1350,39 +1424,51 @@ static void chart_event_cb(lv_event_t * e)
 #endif
 
 
-            const lv_chart_series_t * ser = dsc->sub_part_ptr;
+            lv_chart_series_t * ser;
+            LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_SUB_PART_PTR, ser);
 
-            if(lv_chart_get_pressed_point(obj) == dsc->id) {
+            lv_color_t ser_color;
+            LV_CHART_SERIES_GET_DATA(ser, LV_CHART_SERIES_COLOR, ser_color);
+
+            if(lv_chart_get_pressed_point(obj) == id) {
+                lv_draw_rect_dsc_t rect_dsc;
+
+                LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_RECT_DSC, rect_dsc);
                 if(lv_chart_get_type(obj) == LV_CHART_TYPE_LINE) {
-                    dsc->rect_dsc->outline_color = lv_color_white();
-                    dsc->rect_dsc->outline_width = 2;
+                    rect_dsc.outline_color = lv_color_white();
+                    rect_dsc.outline_width = 2;
                 } else {
-                    dsc->rect_dsc->shadow_color = ser->color;
-                    dsc->rect_dsc->shadow_width = 15;
-                    dsc->rect_dsc->shadow_spread = 0;
+                    rect_dsc.shadow_color = ser_color;
+                    rect_dsc.shadow_width = 15;
+                    rect_dsc.shadow_spread = 0;
                 }
+                LV_OBJ_DRAW_PART_DSC_SET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_RECT_DSC, rect_dsc);
 
                 char buf[8];
-                lv_snprintf(buf, sizeof(buf), "%d", dsc->value);
+                lv_snprintf(buf, sizeof(buf), "%d", value);
 
                 lv_point_t text_size;
                 lv_txt_get_size(&text_size, buf, font_normal, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
 
                 lv_area_t txt_area;
+
+                lv_area_t draw_area;
+                LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_DRAW_AREA, draw_area);
+
                 if(lv_chart_get_type(obj) == LV_CHART_TYPE_BAR) {
-                    txt_area.y2 = dsc->draw_area->y1 - LV_DPX(15);
+                    txt_area.y2 = draw_area.y1 - LV_DPX(15);
                     txt_area.y1 = txt_area.y2 - text_size.y;
                     if(ser == lv_chart_get_series_next(obj, NULL)) {
-                        txt_area.x1 = dsc->draw_area->x1 + lv_area_get_width(dsc->draw_area) / 2;
+                        txt_area.x1 = draw_area.x1 + lv_area_get_width(&draw_area) / 2;
                         txt_area.x2 = txt_area.x1 + text_size.x;
                     } else {
-                        txt_area.x2 = dsc->draw_area->x1 + lv_area_get_width(dsc->draw_area) / 2;
+                        txt_area.x2 = draw_area.x1 + lv_area_get_width(&draw_area) / 2;
                         txt_area.x1 = txt_area.x2 - text_size.x;
                     }
                 } else {
-                    txt_area.x1 = dsc->draw_area->x1 + lv_area_get_width(dsc->draw_area) / 2 - text_size.x / 2;
+                    txt_area.x1 = draw_area.x1 + lv_area_get_width(&draw_area) / 2 - text_size.x / 2;
                     txt_area.x2 = txt_area.x1 + text_size.x;
-                    txt_area.y2 = dsc->draw_area->y1 - LV_DPX(15);
+                    txt_area.y2 = draw_area.y1 - LV_DPX(15);
                     txt_area.y1 = txt_area.y2 - text_size.y;
                 }
 
@@ -1392,20 +1478,26 @@ static void chart_event_cb(lv_event_t * e)
                 bg_area.y1 = txt_area.y1 - LV_DPX(8);
                 bg_area.y2 = txt_area.y2 + LV_DPX(8);
 
-                lv_draw_rect_dsc_t rect_dsc;
+                lv_area_t clip_area;
+                LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_CLIP_AREA, clip_area);
+
                 lv_draw_rect_dsc_init(&rect_dsc);
-                rect_dsc.bg_color = ser->color;
+                rect_dsc.bg_color = ser_color;
                 rect_dsc.radius = LV_DPX(5);
-                lv_draw_rect(&bg_area, dsc->clip_area, &rect_dsc);
+                lv_draw_rect(&bg_area, &clip_area, &rect_dsc);
 
                 lv_draw_label_dsc_t label_dsc;
                 lv_draw_label_dsc_init(&label_dsc);
                 label_dsc.color = lv_color_white();
                 label_dsc.font = font_normal;
-                lv_draw_label(&txt_area, dsc->clip_area, &label_dsc, buf, NULL);
+                lv_draw_label(&txt_area, &clip_area, &label_dsc, buf, NULL);
             } else {
-                dsc->rect_dsc->outline_width = 0;
-                dsc->rect_dsc->shadow_width = 0;
+                lv_draw_rect_dsc_t rect_dsc;
+
+                LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_RECT_DSC, rect_dsc);
+                rect_dsc.outline_width = 0;
+                rect_dsc.shadow_width = 0;
+                LV_OBJ_DRAW_PART_DSC_SET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_RECT_DSC, rect_dsc);
             }
         }
     }
@@ -1418,18 +1510,33 @@ static void shop_chart_event_cb(lv_event_t * e)
     if(code == LV_EVENT_DRAW_PART_BEGIN) {
         lv_obj_draw_part_dsc_t * dsc = lv_event_get_param(e);
         /*Set the markers' text*/
-        if(dsc->part == LV_PART_TICKS && dsc->id == LV_CHART_AXIS_PRIMARY_X) {
+
+        uint32_t part;
+        uint32_t id;
+        int32_t value;
+
+        LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_PART, part);
+        LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_PART, id);
+        LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_VALUE, value);
+        if(part == LV_PART_TICKS && id == LV_CHART_AXIS_PRIMARY_X) {
             const char * month[] = {"Jan", "Febr", "March", "Apr", "May", "Jun", "July", "Aug", "Sept", "Oct", "Nov", "Dec"};
-            lv_snprintf(dsc->text, dsc->text_length, "%s", month[dsc->value]);
+            LV_OBJ_DRAW_PART_DSC_SET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_TEXT, month[value]);
         }
-        if(dsc->part == LV_PART_ITEMS) {
-            dsc->rect_dsc->bg_opa = LV_OPA_TRANSP; /*We will draw it later*/
+        if(part == LV_PART_ITEMS) {
+            lv_draw_rect_dsc_t rect_dsc;
+
+            LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_RECT_DSC, rect_dsc);
+            rect_dsc.bg_opa = LV_OPA_TRANSP; /*We will draw it later*/
+            LV_OBJ_DRAW_PART_DSC_SET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_RECT_DSC, rect_dsc);
         }
     }
     if(code == LV_EVENT_DRAW_PART_END) {
         lv_obj_draw_part_dsc_t * dsc = lv_event_get_param(e);
         /*Add the faded area before the lines are drawn */
-        if(dsc->part == LV_PART_ITEMS) {
+
+        uint32_t part;
+        LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_PART, part);
+        if(part == LV_PART_ITEMS) {
             static const uint32_t devices[10] = {32, 43, 21, 56, 29, 36, 19, 25, 62, 35};
             static const uint32_t clothes[10] = {12, 19, 23, 31, 27, 32, 32, 11, 21, 32};
             static const uint32_t services[10] = {56, 38, 56, 13, 44, 32, 49, 64, 17, 33};
@@ -1437,28 +1544,37 @@ static void shop_chart_event_cb(lv_event_t * e)
             lv_draw_rect_dsc_t draw_rect_dsc;
             lv_draw_rect_dsc_init(&draw_rect_dsc);
 
-            lv_coord_t h = lv_area_get_height(dsc->draw_area);
+            lv_area_t draw_area;
+            LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_DRAW_AREA, draw_area);
+
+            lv_coord_t h = lv_area_get_height(&draw_area);
 
             lv_area_t a;
-            a.x1 = dsc->draw_area->x1;
-            a.x2 = dsc->draw_area->x2;
+            a.x1 = draw_area.x1;
+            a.x2 = draw_area.x2;
 
-            a.y1 = dsc->draw_area->y1;
-            a.y2 = a.y1 + 4 + (devices[dsc->id] * h) / 100; /*+4 to overlap the radius*/
+            uint32_t id;
+            LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_ID, id);
+
+            lv_area_t clip_area;
+            LV_OBJ_DRAW_PART_DSC_GET_DATA(dsc, LV_OBJ_DRAW_PART_DSC_CLIP_AREA, clip_area);
+
+            a.y1 = draw_area.y1;
+            a.y2 = a.y1 + 4 + (devices[id] * h) / 100; /*+4 to overlap the radius*/
             draw_rect_dsc.bg_color = lv_palette_main(LV_PALETTE_RED);
             draw_rect_dsc.radius = 4;
-            lv_draw_rect(&a, dsc->clip_area, &draw_rect_dsc);
+            lv_draw_rect(&a, &clip_area, &draw_rect_dsc);
 
             a.y1 = a.y2 - 4;                                    /*-4 to overlap the radius*/
-            a.y2 = a.y1 +  (clothes[dsc->id] * h) / 100;
+            a.y2 = a.y1 +  (clothes[id] * h) / 100;
             draw_rect_dsc.bg_color = lv_palette_main(LV_PALETTE_BLUE);
             draw_rect_dsc.radius = 0;
-            lv_draw_rect(&a, dsc->clip_area, &draw_rect_dsc);
+            lv_draw_rect(&a, &clip_area, &draw_rect_dsc);
 
             a.y1 = a.y2;
-            a.y2 = a.y1 + (services[dsc->id] * h) / 100;
+            a.y2 = a.y1 + (services[id] * h) / 100;
             draw_rect_dsc.bg_color = lv_palette_main(LV_PALETTE_GREEN);
-            lv_draw_rect(&a, dsc->clip_area, &draw_rect_dsc);
+            lv_draw_rect(&a, &clip_area, &draw_rect_dsc);
         }
     }
 }
@@ -1494,7 +1610,7 @@ static void meter1_indic3_anim_cb(void * var, int32_t v)
 
 static void meter2_timer_cb(lv_timer_t * timer)
 {
-    lv_meter_indicator_t ** indics = timer->user_data;
+    lv_meter_indicator_t ** indics = lv_timer_get_user_data(timer);
 
     static bool down1 = false;
     static bool down2 = false;
