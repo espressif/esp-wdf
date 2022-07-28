@@ -7,11 +7,8 @@
 #ifndef _ESP_HTTP_CLIENT_H
 #define _ESP_HTTP_CLIENT_H
 
-#include "freertos/FreeRTOS.h"
-#include "http_parser.h"
-#include "sdkconfig.h"
-#include "esp_err.h"
-#include <sys/socket.h>
+#include <stdbool.h>
+#include <esp_err.h>
 
 #ifdef __cplusplus
 extern "C" {
