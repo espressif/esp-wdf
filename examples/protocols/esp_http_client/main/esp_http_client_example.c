@@ -9,18 +9,13 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_log.h"
-#include "esp_system.h"
-#include "nvs_flash.h"
-#include "esp_event.h"
-#include "esp_netif.h"
-#include "protocol_examples_common.h"
-#include "esp_tls.h"
-#include "esp_crt_bundle.h"
+#include <stdio.h>
+#include <unistd.h>
 
-#include "esp_http_client.h"
+#include <esp_log.h>
+#include <esp_http_client.h>
+
+#include "sdkconfig.h"
 
 #define MAX_HTTP_RECV_BUFFER 512
 #define MAX_HTTP_OUTPUT_BUFFER 2048
@@ -42,26 +37,30 @@ extern const char howsmyssl_com_root_cert_pem_end[]   asm("_binary_howsmyssl_com
 extern const char postman_root_cert_pem_start[] asm("_binary_postman_root_cert_pem_start");
 extern const char postman_root_cert_pem_end[]   asm("_binary_postman_root_cert_pem_end");
 
+esp_err_t esp_crt_bundle_attach(void *conf)
+{
+    return ESP_OK;
+}
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
-    static char *output_buffer;  // Buffer to store response of http request from event handler
-    static int output_len;       // Stores number of bytes read
+    static char *output_buffer = NULL;  // Buffer to store response of http request from event handler
+    static int output_len = 0;          // Stores number of bytes read
     switch(evt->event_id) {
         case HTTP_EVENT_ERROR:
-            ESP_LOGD(TAG, "HTTP_EVENT_ERROR");
+            ESP_LOGI(TAG, "HTTP_EVENT_ERROR");
             break;
         case HTTP_EVENT_ON_CONNECTED:
-            ESP_LOGD(TAG, "HTTP_EVENT_ON_CONNECTED");
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_CONNECTED");
             break;
         case HTTP_EVENT_HEADER_SENT:
-            ESP_LOGD(TAG, "HTTP_EVENT_HEADER_SENT");
+            ESP_LOGI(TAG, "HTTP_EVENT_HEADER_SENT");
             break;
         case HTTP_EVENT_ON_HEADER:
-            ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
             break;
         case HTTP_EVENT_ON_DATA:
-            ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             /*
              *  Check for chunked encoding is added as the URL for chunked encoding used in this example returns binary data.
              *  However, event handler can also be used in case chunked encoding is used.
@@ -86,10 +85,9 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 
             break;
         case HTTP_EVENT_ON_FINISH:
-            ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
             if (output_buffer != NULL) {
                 // Response is accumulated in output_buffer. Uncomment the below line to print the accumulated response
-                // ESP_LOG_BUFFER_HEX(TAG, output_buffer, output_len);
                 free(output_buffer);
                 output_buffer = NULL;
             }
@@ -97,12 +95,6 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
             break;
         case HTTP_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
-            int mbedtls_err = 0;
-            esp_err_t err = esp_tls_get_and_clear_last_error(evt->data, &mbedtls_err, NULL);
-            if (err != 0) {
-                ESP_LOGI(TAG, "Last esp error code: 0x%x", err);
-                ESP_LOGI(TAG, "Last mbedtls failure: 0x%x", mbedtls_err);
-            }
             if (output_buffer != NULL) {
                 free(output_buffer);
                 output_buffer = NULL;
@@ -115,7 +107,11 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 
 static void http_rest_with_url(void)
 {
-    char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
+    char *local_response_buffer = calloc(1, MAX_HTTP_OUTPUT_BUFFER + 1);
+    if (local_response_buffer == NULL) {
+        ESP_LOGE(TAG, "Cannot malloc http response buffer");
+        return;
+    }
     /**
      * NOTE: All the configuration parameters for http_client must be spefied either in URL or as host and path parameters.
      * If host and path parameters are not set, query parameter will be ignored. In such cases,
@@ -142,7 +138,6 @@ static void http_rest_with_url(void)
     } else {
         ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
     }
-    ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
 
     // POST
     const char *post_data = "{\"field1\":\"value1\"}";
@@ -209,6 +204,7 @@ static void http_rest_with_url(void)
     }
 
     esp_http_client_cleanup(client);
+    free(local_response_buffer);
 }
 
 static void http_rest_with_hostname_path(void)
@@ -511,7 +507,7 @@ static void http_perform_as_stream_reader(void)
             ESP_LOGE(TAG, "Error read data");
         }
         buffer[read_len] = 0;
-        ESP_LOGD(TAG, "read_len = %d", read_len);
+        ESP_LOGI(TAG, "read_len = %d", read_len);
     }
     ESP_LOGI(TAG, "HTTP Stream reader Status = %d, content_length = %d",
                     esp_http_client_get_status_code(client),
@@ -581,7 +577,11 @@ static void https_with_invalid_url(void)
  */
 static void http_native_request(void)
 {
-    char output_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};   // Buffer to store response of http request
+    char *output_buffer = calloc(1, MAX_HTTP_OUTPUT_BUFFER + 1);    // Buffer to store response of http request
+    if (output_buffer == NULL) {
+        ESP_LOGE(TAG, "Cannot malloc http output buffer");
+        return;
+    }
     int content_length = 0;
     esp_http_client_config_t config = {
         .url = "http://httpbin.org/get",
@@ -603,7 +603,6 @@ static void http_native_request(void)
                 ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d",
                 esp_http_client_get_status_code(client),
                 esp_http_client_get_content_length(client));
-                ESP_LOG_BUFFER_HEX(TAG, output_buffer, data_read);
             } else {
                 ESP_LOGE(TAG, "Failed to read response");
             }
@@ -633,13 +632,13 @@ static void http_native_request(void)
                 ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d",
                 esp_http_client_get_status_code(client),
                 esp_http_client_get_content_length(client));
-                ESP_LOG_BUFFER_HEX(TAG, output_buffer, strlen(output_buffer));
             } else {
                 ESP_LOGE(TAG, "Failed to read response");
             }
         }
     }
     esp_http_client_cleanup(client);
+    free(output_buffer);
 }
 
 static void http_partial_download(void)
@@ -687,8 +686,9 @@ static void http_partial_download(void)
     esp_http_client_cleanup(client);
 }
 
-static void http_test_task(void *pvParameters)
+void on_init()
 {
+    ESP_LOGI(TAG, "Start http example");
     http_rest_with_url();
     http_rest_with_hostname_path();
 #if CONFIG_ESP_HTTP_CLIENT_ENABLE_BASIC_AUTH
@@ -711,26 +711,14 @@ static void http_test_task(void *pvParameters)
     http_partial_download();
 
     ESP_LOGI(TAG, "Finish http example");
-    vTaskDelete(NULL);
 }
 
-void app_main(void)
+int
+main(int argc, char *argv[])
 {
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
+    on_init();
+
+    while (1) {
+        sleep(3600);
     }
-    ESP_ERROR_CHECK(ret);
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
-    ESP_ERROR_CHECK(example_connect());
-    ESP_LOGI(TAG, "Connected to AP, begin http example");
-
-    xTaskCreate(&http_test_task, "http_test_task", 8192, NULL, 5, NULL);
 }
