@@ -20,6 +20,9 @@ void *malloc(size_t size);
 void *calloc(size_t n, size_t size);
 void free(void *ptr);
 
+int abs(int j);
+long int labs(long int j);
+void abort(void);
 
 #ifdef __cplusplus
 }

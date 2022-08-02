@@ -28,6 +28,7 @@ size_t strlen(const char *s);
 int strncmp(const char * str1, const char * str2, size_t n);
 char *strncpy(char *dest, const char *src, unsigned long n);
 char * strdup(const char *s);
+char *strerror_r(int errnum, char *buf, size_t buflen);
 
 #ifdef __cplusplus
 }
