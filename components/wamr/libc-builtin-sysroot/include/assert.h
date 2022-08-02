@@ -10,8 +10,7 @@
 extern "C" {
 #endif
 
-
-
+#define assert(x)
 
 #ifdef __cplusplus
 }
