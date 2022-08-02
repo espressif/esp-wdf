@@ -2,4 +2,21 @@ menu "Extended WASM Applications"
     config WDF_EXT_WASM_APP_MQTT
         bool "Enable ESP-MQTT"
         default y
+    
+    config WDF_EXT_WASM_APP_LVGL
+        bool "Enable LVGL"
+        default y
+    
+    if WDF_EXT_WASM_APP_LVGL
+        menu "LVGL"
+            config USING_CUSTOMER_LV_CONF_H
+                bool "Using Customer \"lv_conf.h\""
+                default n
+                help
+                    Users just keep this option disable if not modify options of LVGL
+                    in esp-wasmachine. Otherwise select this option, then lvgl will not use
+                    "lv_conf.h" in directory of "components/extended_wasm_app/esp_lvgl/include/config",
+                    and users can add customized "lv_conf.h".
+        endmenu
+    endif
 endmenu
