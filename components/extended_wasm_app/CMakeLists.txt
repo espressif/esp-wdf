@@ -18,6 +18,12 @@ if(CONFIG_WDF_EXT_WASM_APP_LVGL)
     endif()
 endif()
 
+if(CONFIG_WDF_EXT_WASM_APP_HTTP_CLIENT)
+    list(APPEND include_dir "esp_http_client/include")
+    list(APPEND priv_include_dir "esp_http_client/private_include")
+    list(APPEND srcs "esp_http_client/src/wm_ext_wasm_app_http_client.c")
+endif()
+
 idf_component_register(SRCS ${srcs}
                        INCLUDE_DIRS ${include_dir}
                        PRIV_INCLUDE_DIRS ${priv_include_dir}

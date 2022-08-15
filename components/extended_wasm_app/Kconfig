@@ -19,4 +19,8 @@ menu "Extended WASM Applications"
                     and users can add customized "lv_conf.h".
         endmenu
     endif
+
+    config WDF_EXT_WASM_APP_HTTP_CLIENT
+        bool "Enable ESP HTTP client"
+        default y
 endmenu
