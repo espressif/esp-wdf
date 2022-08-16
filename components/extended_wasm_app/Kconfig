@@ -23,4 +23,9 @@ menu "Extended WASM Applications"
     config WDF_EXT_WASM_APP_HTTP_CLIENT
         bool "Enable ESP HTTP client"
         default y
+
+    config WDF_EXT_WASM_APP_WIFI_PROVISIONING
+        bool "Enable wifi provisioning"
+        default y
+
 endmenu
