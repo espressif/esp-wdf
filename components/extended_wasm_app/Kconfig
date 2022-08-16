@@ -28,4 +28,8 @@ menu "Extended WASM Applications"
         bool "Enable wifi provisioning"
         default y
 
+    config WDF_EXT_WASM_APP_RMAKER
+        bool "Enable ESP RainMaker"
+        default y
+
 endmenu

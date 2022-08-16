@@ -31,6 +31,17 @@ if(CONFIG_WDF_EXT_WASM_APP_WIFI_PROVISIONING)
     list(APPEND srcs "wifi_provisioning/src/wm_ext_wasm_app_wifi_provisioning.c")
 endif()
 
+if(CONFIG_WDF_EXT_WASM_APP_RMAKER)
+    list(APPEND include_dir "esp-rainmaker/include/esp_rainmaker")
+    list(APPEND include_dir "esp-rainmaker/include/esp_schedule")
+    list(APPEND include_dir "esp-rainmaker/include/rmaker_common")
+    list(APPEND priv_include_dir "esp-rainmaker/private_include")
+    list(APPEND srcs "esp-rainmaker/src/wm_ext_wasm_app_rmaker.c")
+    list(APPEND srcs "esp-rainmaker/src/standard_types/esp_rmaker_standard_devices.c")
+    list(APPEND srcs "esp-rainmaker/src/standard_types/esp_rmaker_standard_params.c")
+    list(APPEND srcs "esp-rainmaker/src/standard_types/esp_rmaker_standard_services.c")
+endif()
+
 idf_component_register(SRCS ${srcs}
                        INCLUDE_DIRS ${include_dir}
                        PRIV_INCLUDE_DIRS ${priv_include_dir}
