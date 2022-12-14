@@ -88,7 +88,7 @@ sock_addr_remote(__wasi_fd_t fd, struct sockaddr *sock_addr, socklen_t *addrlen)
 
 __wasi_errno_t
 sock_addr_resolve(__wasi_fd_t fd, const char *restrict host, __wasi_ip_port_t port,
-                    struct sockaddr *sock_addr, socklen_t *addrlen)
+                    struct sockaddr *sock_addr, socklen_t addrlen)
 {
     __wasi_addr_t wasi_addr = { 0 };
     __wasi_errno_t error = __wasi_addr_resolve(fd, host, port, (uint8_t *)&wasi_addr, sizeof(wasi_addr));
@@ -104,8 +104,6 @@ sock_addr_resolve(__wasi_fd_t fd, const char *restrict host, __wasi_ip_port_t po
                                        | wasi_addr.addr.ip4.addr.n3;
         sock_addr_in.sin_port = htons(wasi_addr.addr.ip4.port);
         memcpy(sock_addr, &sock_addr_in, sizeof(sock_addr_in));
-
-        *addrlen = sizeof(sock_addr_in);
     }
     else if (IPv6 == wasi_addr.kind) {
         // TODO: IPV6

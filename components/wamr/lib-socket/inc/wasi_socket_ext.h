@@ -178,6 +178,10 @@ __imported_wasi_snapshot_preview1_addr_resolve(int32_t arg0, int32_t arg1,
     __attribute__((__import_module__("wasi_snapshot_preview1"),
                    __import_name__("sock_addr_resolve")));
 
+__wasi_errno_t
+sock_addr_resolve(__wasi_fd_t fd, const char *restrict host, __wasi_ip_port_t port,
+                    struct sockaddr *sock_addr, socklen_t addrlen);
+
 static inline __wasi_errno_t
 __wasi_addr_resolve(__wasi_fd_t fd, const char *host, __wasi_ip_port_t port,
                     uint8_t *buf, __wasi_size_t size)
