@@ -52,6 +52,8 @@ typedef struct data_seq {
 #define DATA_SEQ_FORCE_PUSH(ds, t, v)   assert(DATA_SEQ_PUSH(ds, t, v) == 0)    /*!< Force to push data to data sequence, and this macro calculates data's length by sizeof(data), if failed it will assert */
 #define DATA_SEQ_FORCE_POP(ds, t, v)    assert(DATA_SEQ_POP(ds, t, v) == 0)     /*!< Force to pop data from data sequence, and this macro calculates data's length by sizeof(data), if failed it will assert */
 
+#define DATA_SEQ_ARRAY_INDEX(ds, i)     (data_seq_t *)(((uint8_t *)ds) + i * ((ds)->num * sizeof(data_seq_frame_t) + sizeof(data_seq_t)))
+
 /**
   * @brief  Create data sequence by given number.
   *
@@ -60,6 +62,16 @@ typedef struct data_seq {
   * @return Data sequence pointer if success or NULL if failed.
   */
 data_seq_t *data_seq_alloc(uint32_t num);
+
+/**
+  * @brief  Create data sequence array.
+  *
+  * @param  num This represents the maximum amount of data that can be pushed.
+  * @param  array_size data sequence array number.
+  *
+  * @return Data sequence pointer if success or NULL if failed.
+  */
+data_seq_t *data_seq_alloc_array(uint32_t n, uint32_t array_size);
 
 /**
   * @brief  Free data sequence.

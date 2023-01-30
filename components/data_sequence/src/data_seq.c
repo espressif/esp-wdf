@@ -43,6 +43,30 @@ data_seq_t *data_seq_alloc(uint32_t n)
     return ds;
 }
 
+data_seq_t *data_seq_alloc_array(uint32_t n, uint32_t array_size)
+{
+    uint32_t size;
+    data_seq_t *ds;
+
+    if (n < DATA_SEQ_MIN || n >= DATA_SEQ_MAX) {
+        return NULL;
+    }
+
+    size = sizeof(data_seq_frame_t) * n;
+    ds = malloc((sizeof(data_seq_t) + size) * array_size);
+    if (ds) {
+        for (uint32_t i = 0; i < array_size; i++) {
+            data_seq_t *t = DATA_SEQ_ARRAY_INDEX(ds, i);
+
+            t->version = DATA_SEQ_V_1;
+            t->num     = n;
+            t->index   = 0;
+        }
+    }
+
+    return ds;
+}
+
 void data_seq_free(data_seq_t *ds)
 {
     if (ds) {

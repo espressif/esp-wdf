@@ -14,6 +14,7 @@
 
 #include <stdarg.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <sys/ioctl.h>
 
 #include "sdkconfig.h"
@@ -26,6 +27,17 @@
 #ifdef CONFIG_IOCTL_I2C
 #include "ioctl/esp_i2c_ioctl.h"
 #endif
+
+#ifdef CONFIG_IOCTL_SPI
+#include "ioctl/esp_spi_ioctl.h"
+#endif
+
+#ifdef CONFIG_IOCTL_LEDC
+#include "ioctl/esp_ledc_ioctl.h"
+#endif
+
+#define DATA_SEQ_PUSH_LEDC_CFG(ds, t, i, v) \
+    DATA_SEQ_PUSH((ds), DATA_SEQ_LEDC_CFG_CHANNEL_SUB(DATA_SEQ_LEDC_CFG_CHANNEL_CFG, (t), (i)), (v))
 
 extern int __real_ioctl(int fd, int cmd, ...);
 
@@ -127,6 +139,142 @@ static int i2c_ioctl(int fd, int cmd, va_list va_list)
 }
 #endif
 
+#ifdef CONFIG_IOCTL_SPI
+static int spi_ioctl(int fd, int cmd, va_list va_list)
+{
+    int ret;
+    data_seq_t *ds;
+    void *ptr;
+    int ds_num = 0;    
+
+    if (cmd == SPIIOCSCFG) {
+        ds_num = 6;
+    } else if (cmd == SPIIOCEXCHANGE) {
+        ds_num = 3;
+    } else {
+        errno = EINVAL;
+        return -1;
+    }
+
+    ds = data_seq_alloc(ds_num);
+    if (!ds) {
+        errno = ENOMEM;
+        return -1;
+    }
+
+    ptr = va_arg(va_list, void *);
+    if (!ptr) {
+        data_seq_free(ds);
+        errno = ENOMEM;
+        return -1;
+    }
+
+    if (cmd == SPIIOCSCFG) {
+        spi_cfg_t *cfg = (spi_cfg_t *)ptr;
+
+        DATA_SEQ_PUSH(ds, DATA_SEQ_SPI_CFG_CS_PIN, cfg->cs_pin);
+        DATA_SEQ_PUSH(ds, DATA_SEQ_SPI_CFG_SCLK_PIN, cfg->sclk_pin);
+        DATA_SEQ_PUSH(ds, DATA_SEQ_SPI_CFG_MOSI_PIN, cfg->mosi_pin);
+        DATA_SEQ_PUSH(ds, DATA_SEQ_SPI_CFG_MISO_PIN, cfg->miso_pin);
+        DATA_SEQ_PUSH(ds, DATA_SEQ_SPI_CFG_FLAGS,   cfg->flags);
+        if (cfg->flags & I2C_MASTER) {
+            DATA_SEQ_PUSH(ds, DATA_SEQ_SPI_CFG_MASTER_CLK, cfg->master.clock);
+        }
+    } else if (cmd == SPIIOCEXCHANGE) {
+        spi_ex_msg_t *ex_msg = (spi_ex_msg_t *)ptr;
+
+        DATA_SEQ_PUSH(ds, DATA_SEQ_SPI_EX_MSG_TXBUF, ex_msg->tx_buffer);
+        DATA_SEQ_PUSH(ds, DATA_SEQ_SPI_EX_MSG_RXBUF, ex_msg->rx_buffer);
+        DATA_SEQ_PUSH(ds, DATA_SEQ_SPI_EX_MSG_SIZE,  ex_msg->size);
+    }
+
+    ret = __real_ioctl(fd, cmd, ds);
+
+    data_seq_free(ds);
+
+    return ret;
+}
+#endif
+
+#ifdef CONFIG_IOCTL_LEDC
+static int ledc_ioctl(int fd, int cmd, va_list va_list)
+{
+    int ret = -1;
+    data_seq_t *ds = NULL;
+
+    if (cmd == LEDCIOCSCFG) {
+        ledc_cfg_t *cfg = va_arg(va_list, ledc_cfg_t *);
+        if (!cfg) {
+            errno = EINVAL;
+            return -1;
+        }
+
+        ds = data_seq_alloc(2 + cfg->channel_num * 3);
+        if (!ds) {
+            errno = ENOMEM;
+            return -1;
+        }
+
+        DATA_SEQ_PUSH(ds, DATA_SEQ_LEDC_CFG_FREQUENCY,   cfg->frequency);
+        DATA_SEQ_PUSH(ds, DATA_SEQ_LEDC_CFG_CHANNEL_NUM, cfg->channel_num);
+
+        for (int i = 0; i < cfg->channel_num; i++) {
+            DATA_SEQ_PUSH_LEDC_CFG(ds, DATA_SEQ_LEDC_CHANNEL_CFG_OUTPUT_PIN, i, cfg->channel_cfg[i].output_pin);
+            DATA_SEQ_PUSH_LEDC_CFG(ds, DATA_SEQ_LEDC_CHANNEL_CFG_DUTY, i, cfg->channel_cfg[i].duty);
+            DATA_SEQ_PUSH_LEDC_CFG(ds, DATA_SEQ_LEDC_CHANNEL_CFG_PHASE, i, cfg->channel_cfg[i].phase);
+        }
+
+        ret = __real_ioctl(fd, cmd, ds);
+    } else if (cmd == LEDCIOCSSETFREQ) {
+        uint32_t frequency = va_arg(va_list, uint32_t);
+        
+        ret = __real_ioctl(fd, cmd, frequency);
+    } else if (cmd == LEDCIOCSSETDUTY) {
+        ledc_duty_cfg_t *cfg = va_arg(va_list, ledc_duty_cfg_t *);
+        if (!cfg) {
+            errno = EINVAL;
+            return -1;
+        }
+
+        ds = data_seq_alloc(2);
+        if (!ds) {
+            errno = ENOMEM;
+            return -1;
+        }
+
+        DATA_SEQ_PUSH(ds, DATA_SEQ_LEDC_DUTY_CFG_CHANNEL, cfg->channel);
+        DATA_SEQ_PUSH(ds, DATA_SEQ_LEDC_DUTY_CFG_DUTY, cfg->duty);
+
+        ret = __real_ioctl(fd, cmd, ds);
+    } else if (cmd == LEDCIOCSSETPHASE) {
+        ledc_phase_cfg_t *cfg = va_arg(va_list, ledc_phase_cfg_t *);
+        if (!cfg) {
+            errno = EINVAL;
+            return -1;
+        }
+
+        ds = data_seq_alloc(2);
+        if (!ds) {
+            errno = ENOMEM;
+            return -1;
+        }
+
+        DATA_SEQ_PUSH(ds, DATA_SEQ_LEDC_PHASE_CFG_CHANNEL, cfg->channel);
+        DATA_SEQ_PUSH(ds, DATA_SEQ_LEDC_PHASE_CFG_PHASE, cfg->phase);
+
+        ret = __real_ioctl(fd, cmd, ds);
+    } else if (cmd == LEDCIOCSPAUSE || cmd == LEDCIOCSRESUME) {
+        ret = __real_ioctl(fd, cmd);
+    }
+
+    if (ds) {
+        data_seq_free(ds);
+    }
+
+    return ret;
+}
+#endif
+
 int __wrap_ioctl(int fd, int cmd, ...)
 {
     int ret;
@@ -151,6 +299,34 @@ int __wrap_ioctl(int fd, int cmd, ...)
 
             va_start(va_list, cmd);
             ret = i2c_ioctl(fd, cmd, va_list);
+            va_end(va_list);
+
+            break;
+        }
+#endif
+#ifdef CONFIG_IOCTL_SPI
+        case SPIIOCSCFG: 
+        case SPIIOCEXCHANGE: {
+            va_list va_list;
+
+            va_start(va_list, cmd);
+            ret = spi_ioctl(fd, cmd, va_list);
+            va_end(va_list);
+
+            break;
+        }
+#endif
+#ifdef CONFIG_IOCTL_LEDC
+        case LEDCIOCSCFG: 
+        case LEDCIOCSSETDUTY:
+        case LEDCIOCSSETPHASE: 
+        case LEDCIOCSSETFREQ:
+        case LEDCIOCSPAUSE:
+        case LEDCIOCSRESUME: {
+            va_list va_list;
+
+            va_start(va_list, cmd);
+            ret = ledc_ioctl(fd, cmd, va_list);
             va_end(va_list);
 
             break;

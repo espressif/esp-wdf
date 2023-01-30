@@ -59,6 +59,18 @@ menu "WAMR Configuration"
                 default y
                 help
                     Select this option, then users can use I2C command in function "ioctl".
+
+            config IOCTL_SPI
+                bool "SPI"
+                default y
+                help
+                    Select this option, then users can use SPI command in function "ioctl".
+
+            config IOCTL_LEDC
+            bool "LEDC"
+            default y
+            help
+                Select this option, then users can use LEDC command in function "ioctl".
     endmenu
     endmenu
 
