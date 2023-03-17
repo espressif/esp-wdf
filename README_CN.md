@@ -107,7 +107,34 @@ Done
 
 1. 把编译的固件存储到文件系统中，执行相关的命令运行该 WebAssembly 应用程序，具体流程请参考 ESP-WASMachine 中的[说明](https://github.com/espressif/esp-wasmachine/README_CN.md#4.4-运行 WebAssembly 应用程序)
 
-2. 通过 `host_tool` 软件远程安装并执行 WebAssembly 应用程序，具体流程请参考 ESP-WASMachine 的[说明](https://github.com/espressif/esp-wasmachine/README_CN.md#4.5-远程安装/卸载 WebAssembly 应用程序)
+2. 通过 [tools/host_tool.py](./tools/host_tool.py) 软件远程安装/管理 WebAssembly 应用程序，相关命令如下：
+
+```
+host_tool.py -i/-u/-q <app name> [配置参数]
+
+    -i: 安装应用程序
+    -u: 卸载应用程序
+    -q: 获取应用程序信息，如果不带 <app name> 则获取所有 app 的信息
+```
+
+配置参数说明如下：
+
+- 通用参数：
+
+```
+    --type：WebAssembly 应用程序类型
+    --address/-S：服务器的 IP 地址
+    --port/-P：服务器的端口号
+```
+
+- 安装 WebAssembly 应用程序的参数：
+
+```
+    --file/-f：带路径的 WebAssembly 应用程序名
+    --heap：WebAssembly 应用程序堆空间大小
+    --timer：WebAssembly 应用程序可以使用的 timer 数量
+    --watchdog：WebAssembly 应用程序看门狗间隔，单位是毫秒
+```
 
 ## 5. 开发注意事项
 
@@ -145,7 +172,7 @@ static timer_callback(lv_timer_t *timer)
 }
 ```
 
-#### 5.1.1 示例 2
+#### 5.1.2 示例 2
 
 ```c
 static void init_menu(void)
@@ -193,7 +220,7 @@ while(1) {
 };
 ```
 
-## 5. 后续工作安排
+## 6. 后续工作安排
 
 ESP-WDF 是 WebAssembly 技术在 ESP32 系列芯片上的尝试，当前还有一些问题尚未解决，我们会尽力解决这些问题，并添加更多的丰富易用的功能。通过此基础版本，我们的目标是帮助您更加方便地开发 WebAssembly 虚拟机程序、添加新的扩展和部署应用程序。
 
