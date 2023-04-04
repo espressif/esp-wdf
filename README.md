@@ -107,7 +107,34 @@ There are two methods to download and run an application:
 
 1. Store the compiled firmware in the file system and run the WebAssembly application by executing relevant commands. For the specific process, please refer to the relevant [document](https://github.com/espressif/esp-wasmachine/README_CN.md#4.4-Run WebAssembly Application) of ESP-WASMachine.
 
-2. You can also use `host_tool` to remotely install and execute a WebAssembly application. For details, please refer to the relevant [document](https://github.com/espressif/esp-wasmachine/README_CN.md#4.5-Install/Uninstall WebAssembly Application Remotely) of ESP-WASMachine.
+2. You can also use [tools/host_tool.py](./tools/host_tool.py) to remotely install and manage a WebAssembly application. The command format is following:
+
+```
+host_tool.py -i/-u/-q <app name> [Configuration parameters]
+
+    -i: installs an application
+    -u: uninstalls an application
+    -q: Obtains the application information, or obtains all applications' information without `<app name>`
+```
+
+The relevant configuration parameters are described as follows:：
+
+- general configuration parameters：
+
+```
+    --type: type of app
+    --address/-S: Server IP address
+    --port/-P: Server port
+```
+
+- installing configuration parameters：
+
+```
+    --file/-f: WebAssembly application file name with full path
+    --heap: heap size of app, in bytes
+    --timer: max timers number app can use
+    --watchdog: watchdog interval in ms
+```
 
 ## 5. Development Considerations
 
@@ -145,7 +172,7 @@ static timer_callback(lv_timer_t *timer)
 }
 ```
 
-#### 5.1.1 Example 2
+#### 5.1.2 Example 2
 
 ```c
 static void init_menu(void)
@@ -193,7 +220,7 @@ while(1) {
 }
 ```
 
-## 5. Follow-up work arrangement
+## 6. Follow-up work arrangement
 
 ESP-WDF is an attempt of WebAssembly technology on the ESP32 series chips. There are still unresolved problems worth exploring. We will address these problems in the coming days and add more rich and easy-to-use features. With this base release, our goal is to make it easier for users to develop WebAssembly applications.
 
