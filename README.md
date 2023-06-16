@@ -63,6 +63,8 @@ All done! You can now run:
   . ./export.sh
 ```
 
+To compile firmware in AOT format, you need to build your own `wamrc` tool. Please refer to the [documentation](https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/wamr-compiler/README.md) for specific steps.
+
 ## 3. Compile Project
 
 We will indicate the compiling process by taking the compilation project [hello_world](./examples/hello_world) as an example. Please go to the esp-wdf root directory and configure the compilation environment by running the following command:
@@ -84,6 +86,8 @@ Configure functions and parameters by running the following command. If you do n
 idf.py menuconfig
 ```
 
+## 3.1 WASM Firmware
+
 Execute the following command to compile the project:
 
 ```
@@ -98,6 +102,23 @@ Done
 ```
 
 The generated firmware is `build/hello_world.wasm`.
+
+## 3.2 AOT Firmware
+
+Execute the following command to compile the project:
+
+```
+idf.py build aot
+```
+
+If the project is compiled successfully, the following log appears:
+
+```
+Compile success, file hello_world.aot was generated.
+Done
+```
+
+The generated firmware is `build/hello_world.aot`.
 
 About how to create your own project, please refer to the relevant [document](https://docs.espressif.com/projects/esp-idf/zh_CN/v4.4.2/esp32/api-guides/build-system.html#example-project-structure) of ESP-IDF.
 

@@ -418,6 +418,7 @@ macro(project project_name)
         "${project_wasm_src}")
 
     idf_build_executable(${project_wasm})
+    idf_build_aot(${project_wasm})
 
     __project_info("${test_components}")
 endmacro()

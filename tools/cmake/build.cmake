@@ -496,3 +496,22 @@ function(idf_build_get_config var config)
     endif()
     set(${var} ${val} PARENT_SCOPE)
 endfunction()
+
+# idf_build_aot
+#
+# @brief Build AOT file from WASM file
+function(idf_build_aot project_wasm)
+    set(project_aot "${CMAKE_PROJECT_NAME}.aot")
+
+    add_custom_command(OUTPUT ${project_aot}
+        COMMAND wamrc
+        --target=xtensa
+        -o ${project_aot}
+        ${project_wasm}
+        DEPENDS ${project_wasm}
+        WORKING_DIRECTORY "${build_dir}"
+        VERBATIM
+        USES_TERMINAL)
+
+    add_custom_target(aot DEPENDS ${project_aot})
+endfunction()

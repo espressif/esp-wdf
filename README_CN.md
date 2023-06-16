@@ -63,6 +63,8 @@ All done! You can now run:
   . ./export.sh
 ```
 
+如需编译 AOT 格式的固件，需要自己构建 `wamrc` 工具，具体操作步骤可以参考[文档](https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/wamr-compiler/README.md). 
+
 ## 3. 编译项目
 
 下面，我们以编译工程 [hello_world](./examples/hello_world) 为例进行说明。运行以下命令切换到 esp-wdf 根目录来配置编译环境：
@@ -84,6 +86,8 @@ cd examples/hello_world
 idf.py menuconfig
 ```
 
+## 3.1 WASM 固件
+
 运行以下命令编译工程：
 
 ```
@@ -98,6 +102,23 @@ Done
 ```
 
 编译生成的固件为 `build/hello_world.wasm`。
+
+## 3.2 AOT 固件
+
+运行以下命令编译工程：
+
+```
+idf.py build aot
+```
+
+编译完成之后会显示如下的 log 信息：
+
+```
+Compile success, file hello_world.aot was generated.
+Done
+```
+
+编译生成的固件为 `build/hello_world.aot`。
 
 关于如何创建自己的项目，可以参考相关的 ESP-IDF [文档](https://docs.espressif.com/projects/esp-idf/zh_CN/v4.4.2/esp32/api-guides/build-system.html#example-project-structure)。
 
