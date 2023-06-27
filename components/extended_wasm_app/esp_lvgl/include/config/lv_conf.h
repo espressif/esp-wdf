@@ -118,6 +118,8 @@ extern "C" {
 #define CONFIG_LV_USE_SNAPSHOT 1
 #define CONFIG_LV_BUILD_EXAMPLES 1
 #define CONFIG_LV_SPRINTF_CUSTOM 1
+#define CONFIG_LV_FONT_FMT_TXT_LARGE 1
+#define CONFIG_LV_USE_QRCODE 1
 
 #ifdef __cplusplus
 }
