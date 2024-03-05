@@ -56,6 +56,8 @@ extern "C" {
 #define MQTT_EVENT_ATTR_SESSION     "session"                   /*!< MQTT session_present flag for connection event */
 #define MQTT_EVENT_ATTR_ERROR_CODE  "error_code"                /*!< MQTT error handle including esp-tls errors as well as internal mqtt errors */
 #define MQTT_EVENT_ATTR_RETAIN      "retain"                    /*!< Retained flag of the message associated with this event */
+#define MQTT_EVENT_ATTR_QOS         "qos"                       /*!< QoS of the messages associated with this event */
+#define MQTT_EVENT_ATTR_DUP         "dup"                       /*!< dup flag of the message associated with this event */
 
 /**
  * @brief Creates mqtt client handle based on the configuration

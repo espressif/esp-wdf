@@ -23,9 +23,6 @@ typedef struct esp_mqtt_client {
     /* Handle of the MQTT client */
     uint32_t                handle;
 
-    /* Callback function called when event on this MQTT client occurs */
-    mqtt_event_callback_t   mqtt_event;
-
     /* User data */
     void                    *user_data;
 
@@ -62,29 +59,29 @@ static attr_container_t *esp_mqtt_client_config_pack(const esp_mqtt_client_confi
         return args;
     }
 
-    ATTR_CONTAINER_SET_STRING(MQTT_HOST, config->host)
-    ATTR_CONTAINER_SET_STRING(MQTT_URI, config->uri)
-    ATTR_CONTAINER_SET_UINT16(MQTT_PORT, config->port)
-    ATTR_CONTAINER_SET_STRING(MQTT_CLIENT_ID, config->client_id)
-    ATTR_CONTAINER_SET_STRING(MQTT_USERNAME, config->username)
-    ATTR_CONTAINER_SET_STRING(MQTT_PASSWORD, config->password)
-    ATTR_CONTAINER_SET_STRING(MQTT_LWT_TOPIC, config->lwt_topic)
-    ATTR_CONTAINER_SET_STRING(MQTT_LWT_MSG, config->lwt_msg)
-    ATTR_CONTAINER_SET_INT(MQTT_LWT_QOS, config->lwt_qos)
-    ATTR_CONTAINER_SET_INT(MQTT_LWT_RETAIN, config->lwt_retain)
-    ATTR_CONTAINER_SET_INT(MQTT_LWT_MSG_LEN, config->lwt_msg_len)
-    ATTR_CONTAINER_SET_INT(MQTT_DISABLE_CLEAN_SESSION, config->disable_clean_session)
-    ATTR_CONTAINER_SET_INT(MQTT_KEEPALIVE, config->keepalive)
-    ATTR_CONTAINER_SET_BOOL(MQTT_DISABLE_AUTO_RECONNECT, config->disable_auto_reconnect)
-    ATTR_CONTAINER_SET_STRING(MQTT_CERT_PEM, config->cert_pem)
-    ATTR_CONTAINER_SET_UINT16(MQTT_CERT_LEN, config->cert_len)
-    ATTR_CONTAINER_SET_STRING(MQTT_CLIENT_CERT_PEM, config->client_cert_pem)
-    ATTR_CONTAINER_SET_UINT16(MQTT_CLIENT_CERT_LEN, config->client_cert_len)
-    ATTR_CONTAINER_SET_STRING(MQTT_CLIENT_KEY_PEM, config->client_key_pem)
-    ATTR_CONTAINER_SET_UINT16(MQTT_CLIENT_KEY_LEN, config->client_key_len)
-    ATTR_CONTAINER_SET_STRING(MQTT_CLIENTKEY_PASSWORD, config->clientkey_password)
-    ATTR_CONTAINER_SET_UINT16(MQTT_CLIENTKEY_PASSWORD_LEN, config->clientkey_password_len)
-    ATTR_CONTAINER_SET_STRING(MQTT_URI_PATH, config->path)
+    ATTR_CONTAINER_SET_STRING(MQTT_HOST, config->broker.address.hostname)
+    ATTR_CONTAINER_SET_STRING(MQTT_URI, config->broker.address.uri)
+    ATTR_CONTAINER_SET_UINT16(MQTT_PORT, config->broker.address.port)
+    ATTR_CONTAINER_SET_STRING(MQTT_CLIENT_ID, config->credentials.client_id)
+    ATTR_CONTAINER_SET_STRING(MQTT_USERNAME, config->credentials.username)
+    ATTR_CONTAINER_SET_STRING(MQTT_PASSWORD, config->credentials.authentication.password)
+    ATTR_CONTAINER_SET_STRING(MQTT_LWT_TOPIC, config->session.last_will.topic)
+    ATTR_CONTAINER_SET_STRING(MQTT_LWT_MSG, config->session.last_will.msg)
+    ATTR_CONTAINER_SET_INT(MQTT_LWT_QOS, config->session.last_will.qos)
+    ATTR_CONTAINER_SET_INT(MQTT_LWT_RETAIN, config->session.last_will.retain)
+    ATTR_CONTAINER_SET_INT(MQTT_LWT_MSG_LEN, config->session.last_will.msg_len)
+    ATTR_CONTAINER_SET_INT(MQTT_DISABLE_CLEAN_SESSION, config->session.disable_clean_session)
+    ATTR_CONTAINER_SET_INT(MQTT_KEEPALIVE, config->session.keepalive)
+    ATTR_CONTAINER_SET_BOOL(MQTT_DISABLE_AUTO_RECONNECT, config->network.disable_auto_reconnect)
+    ATTR_CONTAINER_SET_STRING(MQTT_CERT_PEM, config->broker.verification.certificate)
+    ATTR_CONTAINER_SET_UINT16(MQTT_CERT_LEN, config->broker.verification.certificate_len)
+    ATTR_CONTAINER_SET_STRING(MQTT_CLIENT_CERT_PEM, config->credentials.authentication.certificate)
+    ATTR_CONTAINER_SET_UINT16(MQTT_CLIENT_CERT_LEN, config->credentials.authentication.certificate_len)
+    ATTR_CONTAINER_SET_STRING(MQTT_CLIENT_KEY_PEM, config->credentials.authentication.key)
+    ATTR_CONTAINER_SET_UINT16(MQTT_CLIENT_KEY_LEN, config->credentials.authentication.key_len)
+    ATTR_CONTAINER_SET_STRING(MQTT_CLIENTKEY_PASSWORD, config->credentials.authentication.key_password)
+    ATTR_CONTAINER_SET_UINT16(MQTT_CLIENTKEY_PASSWORD_LEN, config->credentials.authentication.key_password_len)
+    ATTR_CONTAINER_SET_STRING(MQTT_URI_PATH, config->broker.address.path)
     container_set_flag = true;
 
 fail:
@@ -123,8 +120,6 @@ esp_mqtt_client_handle_t esp_mqtt_client_init(const esp_mqtt_client_config_t *co
 
     memset(client, 0, sizeof(esp_mqtt_client_t));
     client->handle = handle;
-    client->mqtt_event = config->event_handle;
-    client->user_data = config->user_context;
 
     if (g_clients != NULL) {
         client->next = g_clients;
@@ -181,13 +176,20 @@ esp_err_t esp_mqtt_client_stop(esp_mqtt_client_handle_t client)
     return wasm_mqtt_stop(client->handle);
 }
 
-esp_err_t esp_mqtt_client_subscribe(esp_mqtt_client_handle_t client, const char *topic, int qos)
+int esp_mqtt_client_subscribe_multiple(esp_mqtt_client_handle_t client,
+                                       const esp_mqtt_topic_t *topic_list, int size)
 {
     if (!client) {
         return ESP_ERR_INVALID_ARG;
     }
 
-    return wasm_mqtt_subscribe(client->handle, topic, qos);
+    return wasm_mqtt_subscribe(client->handle, topic_list->filter, topic_list->qos);
+}
+
+int esp_mqtt_client_subscribe_single(esp_mqtt_client_handle_t client, const char *topic, int qos)
+{
+    esp_mqtt_topic_t user_topic = {.filter = topic, .qos = qos};
+    return esp_mqtt_client_subscribe_multiple(client, &user_topic, 1);
 }
 
 esp_err_t esp_mqtt_client_unsubscribe(esp_mqtt_client_handle_t client, const char *topic)
@@ -274,9 +276,7 @@ void on_mqtt_dispatch_event(uint32 handle, char *buffer, uint32 len)
     while (client != NULL) {
         if (client->handle == handle) {
             attr_container_t *args = (attr_container_t *)buffer;
-            
             mqtt_event->client = client;
-            mqtt_event->user_context = client->user_data;
 
             /* On error event, the event id is zero */
             if (attr_container_contain_key(args, MQTT_EVENT_ATTR_ID)){
@@ -289,6 +289,8 @@ void on_mqtt_dispatch_event(uint32 handle, char *buffer, uint32 len)
                 ATTR_CONTAINER_GET_INT(MQTT_EVENT_ATTR_RETAIN, mqtt_event->retain)
                 ATTR_CONTAINER_GET_INT(MQTT_EVENT_ATTR_TOTAL_LEN, mqtt_event->total_data_len)
                 ATTR_CONTAINER_GET_INT(MQTT_EVENT_ATTR_DATA_OFFSET, mqtt_event->current_data_offset)
+                ATTR_CONTAINER_GET_INT(MQTT_EVENT_ATTR_QOS, mqtt_event->qos)
+                ATTR_CONTAINER_GET_INT(MQTT_EVENT_ATTR_DUP, mqtt_event->dup)
                 char *data = attr_container_get_as_string(args, MQTT_EVENT_ATTR_DATA);
                 if (data) {
                     mqtt_event->data = malloc(mqtt_event->data_len + 1);
@@ -332,10 +334,6 @@ void on_mqtt_dispatch_event(uint32 handle, char *buffer, uint32 len)
                     memset(mqtt_event->error_handle, 0, sizeof(esp_mqtt_error_codes_t));
                     memcpy(mqtt_event->error_handle, error_handle, sizeof(esp_mqtt_error_codes_t));
                 }
-            }
-
-            if (client->mqtt_event) {
-                client->mqtt_event(mqtt_event);
             }
 
             if (client->loop_event) {
