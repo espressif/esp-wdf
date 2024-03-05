@@ -80,6 +80,22 @@ static void intro_print(bool provisioned)
     /* Do nothing */
 }
 
+static uint8_t custom_mfg_data[12];
+static size_t custom_mfg_data_len = 0;
+
+esp_err_t app_wifi_set_custom_mfg_data(uint16_t device_type, uint8_t device_subtype)
+{
+    int8_t mfg_data[] = {MFG_DATA_HEADER, MGF_DATA_APP_ID, MFG_DATA_VERSION, MFG_DATA_CUSTOMER_ID};
+    size_t mfg_data_len = sizeof(mfg_data) + 4; // 4 bytes of device type, subtype, and extra-code
+    memcpy(custom_mfg_data, mfg_data, sizeof(mfg_data));
+    custom_mfg_data[8] = 0xff & (device_type >> 8);
+    custom_mfg_data[9] = 0xff & device_type;
+    custom_mfg_data[10] = device_subtype;
+    custom_mfg_data[11] = 0;
+    custom_mfg_data_len = mfg_data_len;
+    return ESP_OK;
+}
+
 #endif /* !APP_WIFI_SHOW_DEMO_INTRO_TEXT */
 
 static void app_wifi_print_qr(const char *name, const char *pop, const char *transport)
@@ -207,6 +223,14 @@ esp_err_t app_wifi_start(app_wifi_pop_type_t pop_type)
             ESP_LOGE(TAG, "wifi_prov_scheme_ble_set_service_uuid failed %d", err);
             return err;
         }
+
+        if (custom_mfg_data[0]) {
+            err = wifi_prov_scheme_ble_set_mfg_data(custom_mfg_data, custom_mfg_data_len);
+            if (err != ESP_OK) {
+                ESP_LOGE(TAG, "Failed to set mfg data, err=0x%x", err);
+                return err;
+            }
+        }
 #endif /* CONFIG_APP_WIFI_PROV_TRANSPORT_BLE */
 
         /* Start provisioning service */
@@ -226,6 +250,12 @@ esp_err_t app_wifi_start(app_wifi_pop_type_t pop_type)
          * so let's release it's resources */
         wifi_prov_mgr_deinit();
     }
+
+    if (custom_mfg_data[0]) {
+        memset(custom_mfg_data, 0, sizeof(custom_mfg_data));
+        custom_mfg_data_len = 0;
+    }
+
     //TODO: Event for got IP
     return ESP_OK;
 }

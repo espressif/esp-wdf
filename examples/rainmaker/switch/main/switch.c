@@ -106,6 +106,12 @@ int main(int argc, char *argv[])
     /* Start the ESP RainMaker Agent */
     esp_rmaker_start();
 
+    app_wifi_set_custom_mfg_data(MGF_DATA_DEVICE_TYPE_SWITCH, MFG_DATA_DEVICE_SUBTYPE_SWITCH);
+    /* Start the Wi-Fi.
+     * If the node is provisioned, it will start connection attempts,
+     * else, it will start Wi-Fi provisioning. The function will return
+     * after a connection has been successfully established
+     */
     app_wifi_start(0);
 
     while (1) {
