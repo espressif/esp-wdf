@@ -26,24 +26,24 @@
           "linux-amd64": {
             "sha256": "9b1f2c900a034a44e59b74843cd79b4f189342598e554029367ef0a2ac286703",
             "size": 66166239,
-            "url": "https://hub.fastgit.xyz/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-linux.tar.gz"
+            "url": "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-linux.tar.gz"
           },
           "macos": {
             "sha256": "77bf8bad62295c4bfd5480cb900c364a058a2c30095981ce87efe8cfeaab02a5",
             "size": 56116966,
-            "url": "https://hub.fastgit.xyz/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-macos.tar.gz"
+            "url": "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-macos.tar.gz"
           },
           "name": "14.0.3",
           "status": "recommended",
           "win32": {
             "sha256": "24d60ddfc74ab146c3047bbe410a600a809863ccf7b23cddfe607408e7f628a5",
             "size": 168332507,
-            "url": "https://hub.fastgit.xyz/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz"
+            "url": "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz"
           },
           "win64": {
             "sha256": "24d60ddfc74ab146c3047bbe410a600a809863ccf7b23cddfe607408e7f628a5",
             "size": 168332507,
-            "url": "https://hub.fastgit.xyz/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz"
+            "url": "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz"
           }
         }
       ]
