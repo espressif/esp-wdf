@@ -1,16 +1,8 @@
-// Copyright 2020 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2020-2023 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 #include <stdint.h>
 #include <stdbool.h>
@@ -20,6 +12,31 @@
 extern "C"
 {
 #endif
+
+/** @cond **/
+/** ESP RainMaker Event Base */
+ESP_EVENT_DECLARE_BASE(RMAKER_OTA_EVENT);
+/** @endcond **/
+
+/** ESP RainMaker Events */
+typedef enum {
+    /* Invalid event. Used for internal handling only */
+    RMAKER_OTA_EVENT_INVALID = 0,
+    /** RainMaker OTA is Starting */
+    RMAKER_OTA_EVENT_STARTING,
+    /** RainMaker OTA has Started */
+    RMAKER_OTA_EVENT_IN_PROGRESS,
+    /** RainMaker OTA Successful */
+    RMAKER_OTA_EVENT_SUCCESSFUL,
+    /** RainMaker OTA Failed */
+    RMAKER_OTA_EVENT_FAILED,
+    /** RainMaker OTA Rejected */
+    RMAKER_OTA_EVENT_REJECTED,
+    /** RainMaker OTA Delayed */
+    RMAKER_OTA_EVENT_DELAYED,
+    /** OTA Image has been flashed and active partition changed. Reboot is requested. Applicable only if Auto reboot is disabled **/
+    RMAKER_OTA_EVENT_REQ_FOR_REBOOT,
+} esp_rmaker_ota_event_t;
 
 /** Default ESP RainMaker OTA Server Certificate */
 extern const char *ESP_RMAKER_OTA_DEFAULT_SERVER_CERT;
@@ -56,10 +73,16 @@ typedef struct {
     /** Size of the OTA File. Can be 0 if the file size isn't received from
      * the ESP RainMaker Cloud */
     int filesize;
+    /** The firmware version of the OTA image **/
+    char *fw_version;
+    /** The OTA Job ID received from cloud **/
+    char *ota_job_id;
     /** The server certificate passed in esp_rmaker_enable_ota() */
     const char *server_cert;
     /** The private data passed in esp_rmaker_enable_ota() */
     char *priv;
+    /** OTA Metadata. Applicable only for OTA using Topics. Will be received (if applicable) from the backend, along with the OTA URL */
+    char *metadata;
 } esp_rmaker_ota_data_t;
 
 /** Function prototype for OTA Callback
@@ -77,6 +100,32 @@ typedef struct {
 typedef esp_err_t (*esp_rmaker_ota_cb_t) (esp_rmaker_ota_handle_t handle,
             esp_rmaker_ota_data_t *ota_data);
 
+typedef enum {
+    /** OTA Diagnostics Failed. Rollback the firmware. */
+    OTA_DIAG_STATUS_FAIL,
+    /** OTA Diagnostics Pending. Additional validations will be done later. */
+    OTA_DIAG_STATUS_PENDING,
+    /** OTA Diagnostics Succeeded. Firmware can be considered valid. */
+    OTA_DIAG_STATUS_SUCCESS
+} esp_rmaker_ota_diag_status_t;
+
+typedef enum {
+    /** OTA State: Initialised. */
+    OTA_DIAG_STATE_INIT,
+    /** OTA state: MQTT has connected. */
+    OTA_DIAG_STATE_POST_MQTT
+} esp_rmaker_ota_diag_state_t;
+
+typedef struct {
+    /** OTA diagnostic state */
+    esp_rmaker_ota_diag_state_t state;
+    /** Flag to indicate whether the OTA which has triggered the Diagnostics checks for rollback
+     * was triggered via RainMaker or not. This would be useful only when your application has some
+     * other mechanism for OTA too.
+     */
+    bool rmaker_ota;
+} esp_rmaker_ota_diag_priv_t;
+
 /** Function Prototype for Post OTA Diagnostics
  *
  * If the Application rollback feature is enabled, this callback will be invoked
@@ -84,10 +133,23 @@ typedef esp_err_t (*esp_rmaker_ota_cb_t) (esp_rmaker_ota_handle_t handle,
  * boot after an OTA. You may perform some application specific diagnostics and
  * report the status which will decide whether to roll back or not.
  *
- * @return true if diagnostics are successful, meaning that the new firmware is fine.
- * @return false if diagnostics fail and a roolback to previous firmware is required.
+ * This will be invoked once again after MQTT has connected, in case some additional validations
+ * are to be done later.
+ *
+ * If OTA state == OTA_DIAG_STATE_INIT, then
+ *      return OTA_DIAG_STATUS_FAIL to indicate failure and rollback.
+ *      return OTA_DIAG_STATUS_SUCCESS or OTA_DIAG_STATUS_PENDING to tell internal OTA logic to continue further.
+ *
+ * If OTA state == OTA_DIAG_STATE_POST_MQTT, then
+ *      return OTA_DIAG_STATUS_FAIL to indicate failure and rollback.
+ *      return OTA_DIAG_STATUS_SUCCESS to indicate validation was successful and mark OTA as valid
+ *      return OTA_DIAG_STATUS_PENDING to indicate that some additional validations will be done later
+ *      and the OTA will eventually be marked valid/invalid using esp_rmaker_ota_mark_valid() or
+ *      esp_rmaker_ota_mark_invalid() respectively.
+ *
+ * @return esp_rmaker_ota_diag_status_t as applicable
  */
-typedef bool (*esp_rmaker_post_ota_diag_t)(void);
+typedef esp_rmaker_ota_diag_status_t (*esp_rmaker_post_ota_diag_t)(esp_rmaker_ota_diag_priv_t *ota_diag_priv, void *priv);
 
 /** ESP RainMaker OTA Configuration */
 typedef struct {
@@ -170,6 +232,41 @@ esp_err_t esp_rmaker_ota_default_cb(esp_rmaker_ota_handle_t handle, esp_rmaker_o
  * @return error on failure
  */
 esp_err_t esp_rmaker_ota_fetch(void);
+
+/** Fetch OTA Info with a delay
+ *
+ * For OTA using Topics, this API can be used to explicitly ask the backend if an OTA is available
+ * after a delay (in seconds) passed as an argument.
+ *
+ * @param[in] time Delay (in seconds)
+ *
+ * @return ESP_OK if the OTA fetch timer was created.
+ * @return error on failure
+ */
+esp_err_t esp_rmaker_ota_fetch_with_delay(int time);
+
+/** Mark OTA as valid
+ *
+ * This should be called if the OTA validation has been kept pending by returning OTA_DIAG_STATUS_PENDING
+ * in the ota_diag callback and then, the validation was eventually successful. This can also be used to mark
+ * the OTA valid even before RainMaker core does its own validations (primarily MQTT connection).
+ *
+ * @return ESP_OK on success
+ * @return error on failure
+ */
+esp_err_t esp_rmaker_ota_mark_valid(void);
+
+/** Mark OTA as invalid
+ *
+ * This should be called if the OTA validation has been kept pending by returning OTA_DIAG_STATUS_PENDING
+ * in the ota_diag callback and then, the validation eventually failed. This can even be used to rollback
+ * at any point of time before RainMaker core's internal logic and the application's logic mark the OTA
+ * as valid.
+ *
+ * @return ESP_OK on success
+ * @return error on failure
+ */
+esp_err_t esp_rmaker_ota_mark_invalid(void);
 #ifdef __cplusplus
 }
 #endif
