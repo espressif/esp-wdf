@@ -1,0 +1,43 @@
+stages:
+  - build
+
+variables:
+  LOG_PATH: "$CI_PROJECT_DIR/examples_log"
+  BIN_PATH: "$CI_PROJECT_DIR/examples_bin"
+
+workflow:
+  rules:
+    # Disable those non-protected push triggered pipelines
+    - if: '$CI_COMMIT_REF_NAME != "main" && $CI_COMMIT_BRANCH !~ /^release\/v/ && $CI_COMMIT_TAG !~ /^v\d+\.\d+(\.\d+)?($|-)/ && $CI_PIPELINE_SOURCE == "push"'
+      when: never
+    # when running merged result pipelines, CI_COMMIT_SHA represents the temp commit it created.
+    # Please use PIPELINE_COMMIT_SHA at all places that require a commit sha of the original commit.
+    - if: $CI_OPEN_MERGE_REQUESTS != null
+      variables:
+        PIPELINE_COMMIT_SHA: $CI_MERGE_REQUEST_SOURCE_BRANCH_SHA
+        IS_MR_PIPELINE: 1
+    - if: $CI_OPEN_MERGE_REQUESTS == null
+      variables:
+        PIPELINE_COMMIT_SHA: $CI_COMMIT_SHA
+        IS_MR_PIPELINE: 0
+    - when: always
+
+.setup_tools_and_idf_python_venv: &setup_tools_and_idf_python_venv |
+  tools/idf_tools.py --non-interactive install && \
+  python -m pip install -r $CI_PROJECT_DIR/requirements.ci.txt && \
+  . ./export.sh || exit 1
+
+build_examples:
+  stage: build
+  tags:
+    - build
+  image: "${CI_DOCKER_REGISTRY}/esp-env-v5.3:1"
+  artifacts:
+    expire_in: 1 week
+    when: on_success
+    paths: 
+      - ${LOG_PATH}
+      - ${BIN_PATH}
+  script:
+    - *setup_tools_and_idf_python_venv
+    - cd tools/ci && ./build_examples_cmake.sh
