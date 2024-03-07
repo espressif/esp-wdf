@@ -23,23 +23,6 @@ menu "Example Configuration"
         default "ws://mqtt.eclipseprojects.io:80/mqtt" if WS_BROKER_URI
         default "wss://mqtt.eclipseprojects.io:443/mqtt" if WSS_BROKER_URI
 
-    choice EVENT_TYPE
-        prompt "Event Type"
-        default EVENT_MQTT
-        help
-            Event type which this example used.
-        
-        config EVENT_MQTT
-            bool "MQTT Event"
-        config EVENT_LOOP
-            bool "LOOP Event"
-    endchoice
-
-    config EVENT_TYPE
-        int
-        default 0 if EVENT_MQTT
-        default 1 if EVENT_LOOP
-
     config BROKER_CERTIFICATE_OVERRIDE
         string "Broker certificate override"
         default ""
