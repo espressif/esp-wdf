@@ -45,10 +45,16 @@ static void *tcp_client_task(void *pvParameters)
     while (1) {
 #if defined(CONFIG_EXAMPLE_IPV4)
         struct sockaddr_in dest_addr;
+        inet_pton(AF_INET, host_ip, &dest_addr.sin_addr);
+        dest_addr.sin_family = AF_INET;
+        dest_addr.sin_port = htons(PORT);
         addr_family = AF_INET;
         ip_protocol = IPPROTO_IP;
 #elif defined(CONFIG_EXAMPLE_IPV6)
         struct sockaddr_in6 dest_addr = { 0 };
+        inet_pton(AF_INET6, host_ip, &dest_addr.sin6_addr);
+        dest_addr.sin6_family = AF_INET6;
+        dest_addr.sin6_port = htons(PORT);
         addr_family = AF_INET6;
         ip_protocol = IPPROTO_IPV6;
 #endif
@@ -117,12 +123,6 @@ static void *tcp_client_task(void *pvParameters)
 #endif
 
 #endif
-
-        errno = sock_addr_resolve(sock, host_ip, PORT, (struct sockaddr *)&dest_addr, sizeof(struct sockaddr_in));
-        if (errno != 0) {
-            ESP_LOGE(TAG, "Socket unable to resolve: errno %d", errno);
-            break;
-        }
 
         int err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(struct sockaddr_in6));
         if (err != 0) {

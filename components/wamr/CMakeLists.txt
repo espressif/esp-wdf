@@ -8,11 +8,8 @@ set(srcs
 
 set(include_dirs
     "app-framework/include"
+    "libc-wasi/include"
     )
-
-if(CONFIG_WAMR_EXTENDED_LIBC_ERRNO)
-    list(APPEND srcs "libc-builtin-extended/src/libc_errno.c")
-endif()
 
 if(CONFIG_WAMR_EXTENDED_LIBC_IOCTL)
     list(APPEND srcs "libc-builtin-extended/src/libc_ioctl.c")
@@ -25,17 +22,9 @@ if(CONFIG_WAMR_EXTENDED_SOCKET)
     list(APPEND include_dirs "lib-socket/inc")
 endif()
 
-if(NOT CONFIG_COMPILER_WASI_NO_USE_STDLIB)
-    list(APPEND include_dirs "libc-wasi/include")
-endif()
-
 idf_component_register(SRCS         ${srcs}
                        INCLUDE_DIRS ${include_dirs}
                        PRIV_INCLUDE_DIRS ${priv_include_dir}
                        REQUIRES "data_sequence")
-
-if(CONFIG_WAMR_EXTENDED_LIBC_ERRNO)
-    target_link_libraries(${COMPONENT_LIB} INTERFACE "-Wl,--export=libc_builtin_set_errno")
-endif()
 
 target_link_libraries(${COMPONENT_LIB} INTERFACE "-Wl,--wrap=ioctl")

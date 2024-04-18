@@ -92,9 +92,7 @@ function(__build_set_default_build_specifications)
 
     list(APPEND compile_definitions "")
 
-    list(APPEND compile_options     "-pthread"
-                                    "-ftls-model=local-exec"
-                                    "-Wno-unused-command-line-argument")
+    list(APPEND compile_options     "-Wno-unused-command-line-argument")
 
     list(APPEND c_compile_options   "")
 

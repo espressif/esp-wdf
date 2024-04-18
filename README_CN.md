@@ -31,7 +31,6 @@ esp-wdf/
             ├──app-framework            WAMR 中部分 app-framework 组件
             ├──lib-socket               socket WASM 适配函数
             ├──libc-builtin-extended    libc 扩展函数
-            ├──libc-builtin-sysroot     libc 头文件定义
             ├──libc-wasi                libc WASI 头文件定义
     ├──example                          用于评估和测试的示例程序
     ├──tools                            编译相关的脚本和工具
