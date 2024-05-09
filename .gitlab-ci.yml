@@ -31,7 +31,7 @@ build_examples:
   stage: build
   tags:
     - build
-  image: "${CI_DOCKER_REGISTRY}/esp-env-v5.3:1"
+  image: "${CI_DOCKER_REGISTRY}/esp-env-v5.0:1"
   artifacts:
     expire_in: 1 week
     when: on_success

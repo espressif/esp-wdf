@@ -25,20 +25,9 @@ menu "WAMR Configuration"
     endif
 
     menu "Extended Libc Configuration"
-        config WAMR_EXTENDED_LIBC_ERRNO
-            bool "Enable \"errno\""
-            default n
-            depends on COMPILER_WASI_NO_USE_STDLIB
-            help
-                Select this option, then function "libc_builtin_set_errno" will be exported
-                for runtime to call.
-                Set this option when you use libc_builtin and open/read/write/close/... APIs.
-                Otherwise, you can disable this option to reduce the size of WASM application.
-
         config WAMR_EXTENDED_LIBC_IOCTL
             bool "Enable Extended \"ioctl\""
             default y
-            depends on COMPILER_WASI_NO_USE_STDLIB
             help
                 Select this option, then extended "ioctl" is enable, users can use peripheral
                 VFS drivers' ioctl function, and input structure's members are transformed to
@@ -78,6 +67,5 @@ menu "WAMR Configuration"
         config WAMR_EXTENDED_SOCKET
                 bool "Enable Extended socket"
                 default y
-                depends on !COMPILER_WASI_NO_USE_STDLIB
     endmenu
 endmenu

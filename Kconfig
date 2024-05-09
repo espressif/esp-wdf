@@ -52,13 +52,6 @@ mainmenu "Espressif Webassembly Development Framework Configuration"
                 In this mode, the libc-builtin library of WAMR must be built to run the
                 wasm app, otherwise, the libc-wasi library must be built.
 
-        config COMPILER_WASI_USE_WAMR_LIBC_BUILTIN_SYSROOT
-            bool "Use WAMR's libc-builtin-sysroot"
-            default y
-            depends on COMPILER_WASI_NO_USE_STDLIB
-            help
-                Use WAMR's libc-builtin-sysroot.
-
         config COMPILER_WASI_STACK_SIZE
             int "Set the auxiliary stack size"
             default 8192

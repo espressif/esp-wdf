@@ -31,7 +31,6 @@ esp-wdf/
             ├──app-framework        Parts of the App-Framework components in WAMR
             ├──lib-socket           Socket WASM adapter functions
             ├──libc-builtin-extended    Libc extension functions
-            ├──libc-builtin-sysroot     Libc header files
             ├──libc-wasi            Libc WASI header files
     ├──example                      Examples for evaluation and testing
     ├──tools                        Compiling scripts and tools
