@@ -17,6 +17,11 @@ extern "C" {
 
 #if LV_USE_ROLLER != 0
 
+/*Testing of dependencies*/
+#if LV_USE_LABEL == 0
+#error "lv_roller: lv_label is required. Enable it in lv_conf.h (LV_USE_ROLLER 1)"
+#endif
+
 #include "../core/lv_obj.h"
 #include "lv_label.h"
 
@@ -47,13 +52,12 @@ typedef struct {
 
 extern const lv_obj_class_t lv_roller_class;
 
-
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
 
 /**
- * Create a roller objects
+ * Create a roller object
  * @param parent    pointer to an object, it will be the parent of the new roller.
  * @return          pointer to the created roller
  */
@@ -104,7 +108,6 @@ uint16_t lv_roller_get_selected(const lv_obj_t * obj);
  * @param buf_size  size of `buf` in bytes. 0: to ignore it.
  */
 void lv_roller_get_selected_str(const lv_obj_t * obj, char * buf, uint32_t buf_size);
-
 
 /**
  * Get the options of a roller

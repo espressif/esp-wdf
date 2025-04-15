@@ -416,6 +416,47 @@ void lv_table_set_cell_value(lv_obj_t *obj, uint16_t row, uint16_t col, const ch
     LVGL_CALL_FUNC(LV_TABLE_SET_CELL_VALUE, argv);
 }
 
+void lv_table_set_cell_value_fmt(lv_obj_t * obj, uint16_t row, uint16_t col, const char * fmt, ...)
+{
+    va_list va_arg;
+    char *buffer;
+    int n = 128;
+
+    va_start(va_arg, fmt);
+
+    while (1) {
+        buffer = malloc(n);
+        if (!buffer) {
+            break;
+        }
+
+        int ret = vsnprintf(buffer, n, fmt, va_arg);
+        if (ret <= 0) {
+            free(buffer);
+        } else {
+            break;
+        }
+
+        n *= 2;
+    };
+
+    va_end(va_arg);
+
+    if (buffer) {
+        lv_table_set_cell_value(obj, row, col, buffer);
+        free(buffer);
+    }
+}
+
+void lv_table_set_row_cnt(lv_obj_t * obj, uint16_t row_cnt)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)row_cnt;
+    LVGL_CALL_FUNC(LV_TABLE_SET_ROW_CNT, argv);
+}
+
 lv_timer_t *lv_timer_create(lv_timer_cb_t timer_xcb, uint32_t period, void *user_data)
 {
     uint32_t argv[3];
@@ -1728,13 +1769,13 @@ void lv_draw_rect_dsc_init(lv_draw_rect_dsc_t * dsc)
     LVGL_CALL_FUNC(LV_DRAW_RECT_DSC_INIT, argv);
 }
 
-void lv_draw_rect(const lv_area_t * coords, const lv_area_t * clip, const lv_draw_rect_dsc_t * dsc)
+void lv_draw_rect(lv_draw_ctx_t * draw_ctx, const lv_draw_rect_dsc_t * dsc, const lv_area_t * coords)
 {
     uint32_t argv[3];
 
-    argv[0] = (uint32_t)coords;
-    argv[1] = (uint32_t)clip;
-    argv[2] = (uint32_t)dsc;
+    argv[0] = (uint32_t)draw_ctx;
+    argv[1] = (uint32_t)dsc;
+    argv[2] = (uint32_t)coords;
     LVGL_CALL_FUNC(LV_DRAW_RECT, argv);
 }
 
@@ -1746,15 +1787,14 @@ void lv_draw_label_dsc_init(lv_draw_label_dsc_t * dsc)
     LVGL_CALL_FUNC(LV_DRAW_LABEL_DSC_INIT, argv);
 }
 
-void lv_draw_label(const lv_area_t * coords, const lv_area_t * mask,
-                   const lv_draw_label_dsc_t * dsc,
-                   const char * txt, lv_draw_label_hint_t * hint)
+void lv_draw_label(lv_draw_ctx_t * draw_ctx, const lv_draw_label_dsc_t * dsc,
+                   const lv_area_t * coords, const char * txt, lv_draw_label_hint_t * hint)
 {
     uint32_t argv[5];
 
-    argv[0] = (uint32_t)coords;
-    argv[1] = (uint32_t)mask;
-    argv[2] = (uint32_t)dsc;
+    argv[0] = (uint32_t)draw_ctx;
+    argv[1] = (uint32_t)dsc;
+    argv[2] = (uint32_t)coords;
     argv[3] = (uint32_t)txt;
     argv[4] = (uint32_t)hint;
     LVGL_CALL_FUNC(LV_DRAW_LABEL, argv);
@@ -2252,7 +2292,7 @@ lv_obj_t * lv_list_create(lv_obj_t * parent)
     return (lv_obj_t *)argv[0];
 }
 
-lv_obj_t * lv_list_add_btn(lv_obj_t * list, const char * icon, const char * txt)
+lv_obj_t * lv_list_add_btn(lv_obj_t * list, const void * icon, const char * txt)
 {
     uint32_t argv[3];
 
@@ -2686,15 +2726,15 @@ int16_t lv_trigo_sin(int16_t angle)
     return (int16_t)argv[0]; 
 }
 
-void lv_draw_polygon(const lv_point_t points[], uint16_t point_cnt, const lv_area_t * mask,
-                     const lv_draw_rect_dsc_t * draw_dsc)
+void lv_draw_polygon(struct _lv_draw_ctx_t * draw_ctx, const lv_draw_rect_dsc_t * draw_dsc,
+                     const lv_point_t points[], uint16_t point_cnt)
 {
     uint32_t argv[4];
 
-    argv[0] = (uint32_t)points;
-    argv[1] = (uint32_t)point_cnt;
-    argv[2] = (uint32_t)mask;
-    argv[3] = (uint32_t)draw_dsc;
+    argv[0] = (uint32_t)draw_ctx;
+    argv[1] = (uint32_t)draw_dsc;
+    argv[2] = (uint32_t)points;
+    argv[3] = (uint32_t)point_cnt;
     LVGL_CALL_FUNC(LV_DRAW_POLYGON, argv);
 }
 
@@ -3122,4 +3162,67 @@ void lv_group_focus_freeze(lv_group_t * group, bool en)
     argv[0] = (uint32_t)group;
     argv[1] = (uint32_t)en;
     LVGL_CALL_FUNC(LV_GROUP_FOCUS_FREEZE, argv);
+}
+
+lv_timer_t *_lv_disp_get_refr_timer(lv_disp_t *disp)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)disp;
+    LVGL_CALL_FUNC(LV_DISP_GET_REFR_TIMER, argv);
+
+    return (lv_timer_t *)argv[0];
+}
+
+void lv_timer_set_period(lv_timer_t * timer, uint32_t period)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)timer;
+    argv[1] = (uint32_t)period;
+    LVGL_CALL_FUNC(LV_TIMER_SET_PERIOD, argv);
+}
+
+struct _lv_timer_t * lv_anim_get_timer(void)
+{
+    uint32_t argv[1];
+
+    LVGL_CALL_FUNC(LV_ANIM_GET_TIMER, argv);
+
+    return (lv_timer_t *)argv[0];
+}
+
+int lv_disp_get_data(lv_disp_t *disp, void *pdata, int n)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)disp;
+    argv[1] = (uint32_t)pdata;
+    argv[2] = (uint32_t)n;
+    LVGL_CALL_FUNC(LV_DISP_GET_DATA, argv);
+
+    return (int)argv[0];
+}
+
+int lv_anim_timer_get_data(lv_timer_t *anim_timer, void *pdata, int n)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)anim_timer;
+    argv[1] = (uint32_t)pdata;
+    argv[2] = (uint32_t)n;
+    LVGL_CALL_FUNC(LV_ANIM_TIMER_GET_DATA, argv);
+
+    return (int)argv[0];
+}
+
+lv_opa_t lv_obj_get_style_opa_recursive(const lv_obj_t * obj, lv_part_t part)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)part;
+    LVGL_CALL_FUNC(LV_OBJ_GET_STYLE_OPA_RECURSIVE, argv);
+
+    return (lv_opa_t)argv[0];
 }

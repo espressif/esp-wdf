@@ -29,11 +29,12 @@ extern "C" {
 #define LV_OBJ_DRAW_PART_DSC_VALUE        4 /*!< type of set/get lv_obj_draw_part_dsc_t->value */
 #define LV_OBJ_DRAW_PART_DSC_P1           5 /*!< type of set/get lv_obj_draw_part_dsc_t->p1 */
 #define LV_OBJ_DRAW_PART_DSC_P2           6 /*!< type of set/get lv_obj_draw_part_dsc_t->p2 */
-#define LV_OBJ_DRAW_PART_DSC_CLIP_AREA    7 /*!< type of set/get lv_obj_draw_part_dsc_t->clip_area */
+#define LV_OBJ_DRAW_PART_DSC_DRAW_CTX     7 /*!< type of set/get lv_obj_draw_part_dsc_t->draw_ctx */
 #define LV_OBJ_DRAW_PART_DSC_DRAW_AREA    8 /*!< type of set/get lv_obj_draw_part_dsc_t->draw_area */
 #define LV_OBJ_DRAW_PART_DSC_RECT_DSC     9 /*!< type of set/get lv_obj_draw_part_dsc_t->rect_dsc */
 #define LV_OBJ_DRAW_PART_DSC_LINE_DSC     10 /*!< type of set/get lv_obj_draw_part_dsc_t->line_dsc */
 #define LV_OBJ_DRAW_PART_DSC_SUB_PART_PTR 11 /*!< type of set/get lv_obj_draw_part_dsc_t->sub_part_ptr */
+#define LV_OBJ_DRAW_PART_DSC_CLIP_AREA    12 /*!< type of set/get lv_draw_ctx_t->clip_area */
 
 #define LV_CHART_SERIES_COLOR             0 /*!< type of set/get lv_chart_series_t->color */
 
@@ -172,6 +173,9 @@ const lv_font_t *lv_font_get_font(int type);
   */
 int lv_font_get_data(const lv_font_t * font, int type, void *pdata, int n);
 
+int lv_disp_get_data(lv_disp_t *disp, void *pdata, int n);
+
+int lv_anim_timer_get_data(lv_timer_t *anim_timer, void *pdata, int n);
 #ifdef __cplusplus
 }
 #endif

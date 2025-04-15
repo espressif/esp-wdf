@@ -319,6 +319,13 @@
 #define LV_QRCODE_UPDATE                302
 #define LV_GROUP_FOCUS_OBJ              303
 #define LV_GROUP_FOCUS_FREEZE           304
+#define LV_DISP_GET_REFR_TIMER          305
+#define LV_TIMER_SET_PERIOD             306
+#define LV_ANIM_GET_TIMER               307
+#define LV_DISP_GET_DATA                308
+#define LV_ANIM_TIMER_GET_DATA          309
+#define LV_TABLE_SET_ROW_CNT            310
+#define LV_OBJ_GET_STYLE_OPA_RECURSIVE  311
 
 /**
   * @brief  Call LVGL functions in runtime level.

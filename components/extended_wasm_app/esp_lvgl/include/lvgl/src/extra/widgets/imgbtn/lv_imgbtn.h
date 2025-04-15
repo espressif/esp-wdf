@@ -49,8 +49,8 @@ extern const lv_obj_class_t lv_imgbtn_class;
  **********************/
 
 /**
- * Create a image button objects
- * @param par pointer to an object, it will be the parent of the new image button
+ * Create an image button object
+ * @param parent pointer to an object, it will be the parent of the new image button
  * @return pointer to the created image button
  */
 lv_obj_t * lv_imgbtn_create(lv_obj_t * parent);
@@ -76,7 +76,6 @@ lv_obj_t * lv_imgbtn_create(lv_obj_t * parent);
  */
 void lv_imgbtn_set_src(lv_obj_t * imgbtn, lv_imgbtn_state_t state, const void * src_left, const void * src_mid,
                        const void * src_right);
-
 
 /**
  * Use this function instead of `lv_obj_add/clear_state` to set a state manually
@@ -112,7 +111,6 @@ const void * lv_imgbtn_get_src_middle(lv_obj_t * imgbtn, lv_imgbtn_state_t state
  * @return pointer to the left image source (a C array or path to a file)
  */
 const void * lv_imgbtn_get_src_right(lv_obj_t * imgbtn, lv_imgbtn_state_t state);
-
 
 /*=====================
  * Other functions

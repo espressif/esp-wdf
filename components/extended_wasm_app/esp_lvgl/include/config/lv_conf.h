@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef LV_CONF_H
+#define LV_CONF_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,3 +125,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#endif /*LV_CONF_H*/

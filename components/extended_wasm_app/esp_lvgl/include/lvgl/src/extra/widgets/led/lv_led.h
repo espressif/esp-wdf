@@ -17,7 +17,6 @@ extern "C" {
 
 #if LV_USE_LED
 
-
 /*********************
  *      DEFINES
  *********************/
@@ -57,8 +56,8 @@ typedef enum {
  **********************/
 
 /**
- * Create a led objects
- * @param par pointer to an object, it will be the parent of the new led
+ * Create a led object
+ * @param parent pointer to an object, it will be the parent of the new led
  * @return pointer to the created led
  */
 lv_obj_t * lv_led_create(lv_obj_t * parent);
@@ -66,7 +65,7 @@ lv_obj_t * lv_led_create(lv_obj_t * parent);
 /**
  * Set the color of the LED
  * @param led       pointer to a LED object
- * @param color     the color of the the LED
+ * @param color     the color of the LED
  */
 void lv_led_set_color(lv_obj_t * led, lv_color_t color);
 
@@ -111,6 +110,5 @@ uint8_t lv_led_get_brightness(const lv_obj_t * obj);
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
-
 
 #endif /*LV_LED_H*/
