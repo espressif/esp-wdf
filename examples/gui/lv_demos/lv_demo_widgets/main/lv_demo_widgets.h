@@ -27,6 +27,8 @@ extern "C" {
  **********************/
 void lv_demo_widgets(void);
 
+void lv_demo_widgets_close(void);
+
 /**********************
  *      MACROS
  **********************/

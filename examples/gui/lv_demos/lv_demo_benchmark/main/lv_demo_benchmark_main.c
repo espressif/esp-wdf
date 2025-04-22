@@ -17,19 +17,39 @@
 #include "lv_demo_benchmark.h"
 #include "esp_lvgl.h"
 
-int main(void)
+void on_init(void)
 {
     int ret;
 
     ret = lvgl_init();
     if (ret != 0) {
         printf("faield to lvgl_init ret=%d\n", ret);
-        return -1;
+        return;
     }
 
     lvgl_lock();
     lv_demo_benchmark();
     lvgl_unlock();
+}
+
+void on_destroy()
+{
+    int ret;
+
+    printf("Close LVGL benchmark demo\n");
+    lvgl_lock();
+    lv_demo_benchmark_close();
+    lvgl_unlock();
+
+    ret = lvgl_deinit();
+    if (ret != 0) {
+        printf("faield to lvgl_deinit ret=%d\n", ret);
+    }
+}
+
+int main(void)
+{
+    on_init();
 
     while (1) {
         sleep(3600);

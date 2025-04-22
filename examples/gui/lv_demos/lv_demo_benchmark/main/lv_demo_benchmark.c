@@ -716,6 +716,9 @@ void lv_demo_benchmark(void)
 
 void lv_demo_benchmark_close(void)
 {
+    lv_disp_t * disp = lv_disp_get_default();
+    lv_disp_set_monitor_cb(disp, NULL);
+
     if(next_scene_timer) lv_timer_del(next_scene_timer);
     next_scene_timer = NULL;
 

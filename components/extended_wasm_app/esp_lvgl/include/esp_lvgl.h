@@ -76,6 +76,13 @@ extern "C" {
 int lvgl_init(void);
 
 /**
+  * @brief  Deinitialize LVGL library and related hardware.
+  *
+  * @return 0 if success or a negative value if failed.
+  */
+int lvgl_deinit(void);
+
+/**
   * @brief  Lock LVGL, and then users can add or remove LVGL controls.
   */
 void lvgl_lock(void);
