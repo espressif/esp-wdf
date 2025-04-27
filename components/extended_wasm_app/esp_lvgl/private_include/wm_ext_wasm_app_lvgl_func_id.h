@@ -338,6 +338,22 @@
   */
 void esp_lvgl_call_native_func(int32_t func_id, uint32_t argc, uint32_t *argv);
 
+/**
+  * @brief  Initialize LVGL library and related hardware.
+  *
+  * @param  version LVGL version
+  *
+  * @return 0 if success or a negative value if failed.
+  */
+int esp_lvgl_init(uint32_t version);
+
+/**
+  * @brief  Deinitialize LVGL library and related hardware.
+  *
+  * @return 0 if success or a negative value if failed.
+  */
+int esp_lvgl_deinit(void);
+
 #ifdef __cplusplus
 }
 #endif

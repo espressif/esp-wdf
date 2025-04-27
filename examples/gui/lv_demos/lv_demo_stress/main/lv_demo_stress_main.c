@@ -23,7 +23,7 @@ void on_init(void)
 
     ret = lvgl_init();
     if (ret != 0) {
-        printf("faield to lvgl_init ret=%d\n", ret);
+        printf("Faield to lvgl_init ret=%d\n", ret);
         return;
     }
 
@@ -34,6 +34,10 @@ void on_init(void)
 
 void on_destroy()
 {
+    if (!lvgl_is_inited()) {
+        return;
+    }
+
     int ret;
 
     printf("Close LVGL stress demo\n");
@@ -50,6 +54,10 @@ void on_destroy()
 int main(void)
 {
     on_init();
+
+    if (!lvgl_is_inited()) {
+        return -1;
+    }
 
     while (1) {
         sleep(3600);

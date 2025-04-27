@@ -14,12 +14,18 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "lvgl.h"
+#include "esp_lvgl.h"
 #include "wm_ext_wasm_app_lvgl_func_id.h"
+
+#define LV_VERSION_VAL(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
+#define LV_VERSION  LV_VERSION_VAL(LV_VERSION_MAJOR, \
+                                   LV_VERSION_MINOR, \
+                                   LV_VERSION_PATCH)
 
 #define LVGL_CALL_FUNC(id, argv) esp_lvgl_call_native_func(id, \
                                                            sizeof(argv) / sizeof(argv[0]), \
                                                            argv)
+static bool is_lvgl_init = false;
 
 lv_disp_t *lv_disp_get_next(lv_disp_t *disp)
 {
@@ -3225,4 +3231,26 @@ lv_opa_t lv_obj_get_style_opa_recursive(const lv_obj_t * obj, lv_part_t part)
     LVGL_CALL_FUNC(LV_OBJ_GET_STYLE_OPA_RECURSIVE, argv);
 
     return (lv_opa_t)argv[0];
+}
+
+int lvgl_init(void)
+{
+    int ret = esp_lvgl_init(LV_VERSION);
+    if (!ret) {
+        is_lvgl_init = true;
+    } else {
+        is_lvgl_init = false;
+    }
+
+    return ret;
+}
+
+int lvgl_deinit(void)
+{
+    return esp_lvgl_deinit();
+}
+
+bool lvgl_is_inited(void)
+{
+    return is_lvgl_init;
 }

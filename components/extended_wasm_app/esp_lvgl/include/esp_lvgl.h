@@ -68,6 +68,22 @@ extern "C" {
 #define LV_FONT_DEJAVU_16_PERSIAN_HEBREW_FONT 25
 #define LV_FONT_SIMSUN_16_CJK_FONT 26
 
+/* Custom LVGL version: 1.0.0 */
+#define LV_VERSION_MAJOR 1
+#define LV_VERSION_MINOR 0
+#define LV_VERSION_PATCH 0
+
+/**
+  * @brief  Check whether the LVGL library is initialized.
+  *
+  * This function returns the initialization status of LVGL. It can be used
+  * to guard LVGL API calls that require prior initialization.
+  *
+  * @return true  if LVGL is initialized and ready to use,
+  *         false if LVGL is not initialized or has been deinitialized.
+  */
+bool lvgl_is_inited(void);
+
 /**
   * @brief  Initialize LVGL library and related hardware.
   *
@@ -180,9 +196,28 @@ const lv_font_t *lv_font_get_font(int type);
   */
 int lv_font_get_data(const lv_font_t * font, int type, void *pdata, int n);
 
+/**
+  * @brief  Get member value of structure of lv_disp_t.
+  *
+  * @param  disp LV display pointer
+  * @param  pdata Destination buffer pointer to store the retrieved data
+  * @param  n Size of the destination buffer
+  *
+  * @return 0 if success or a negative value if failed (e.g., invalid parameters or buffer overflow).
+  */
 int lv_disp_get_data(lv_disp_t *disp, void *pdata, int n);
 
+/**
+  * @brief  Get member value of structure of animation timer (lv_timer_t used in animations).
+  *
+  * @param  anim_timer Animation timer pointer (must be an animation-related timer)
+  * @param  pdata Destination buffer pointer to store the retrieved data
+  * @param  n Size of the destination buffer
+  *
+  * @return 0 if success or a negative value if failed (e.g., invalid timer type or insufficient buffer).
+  */
 int lv_anim_timer_get_data(lv_timer_t *anim_timer, void *pdata, int n);
+
 #ifdef __cplusplus
 }
 #endif
