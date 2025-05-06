@@ -326,6 +326,8 @@
 #define LV_ANIM_TIMER_GET_DATA          309
 #define LV_TABLE_SET_ROW_CNT            310
 #define LV_OBJ_GET_STYLE_OPA_RECURSIVE  311
+#define LV_TIMER_CTX_GET_DATA           312
+#define LV_TIMER_CTX_SET_DATA           313
 
 /**
   * @brief  Call LVGL functions in runtime level.

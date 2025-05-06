@@ -18,9 +18,9 @@
 #include "wm_ext_wasm_app_lvgl_func_id.h"
 
 #define LV_VERSION_VAL(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
-#define LV_VERSION  LV_VERSION_VAL(LV_VERSION_MAJOR, \
-                                   LV_VERSION_MINOR, \
-                                   LV_VERSION_PATCH)
+#define LV_VERSION  LV_VERSION_VAL(WM_LV_VERSION_MAJOR, \
+                                   WM_LV_VERSION_MINOR, \
+                                   WM_LV_VERSION_PATCH)
 
 #define LVGL_CALL_FUNC(id, argv) esp_lvgl_call_native_func(id, \
                                                            sizeof(argv) / sizeof(argv[0]), \
@@ -3231,6 +3231,32 @@ lv_opa_t lv_obj_get_style_opa_recursive(const lv_obj_t * obj, lv_part_t part)
     LVGL_CALL_FUNC(LV_OBJ_GET_STYLE_OPA_RECURSIVE, argv);
 
     return (lv_opa_t)argv[0];
+}
+
+int lv_timer_ctx_get_data(const timer_context_t *dsc, int type, void *pdata, int n)
+{
+    uint32_t argv[4];
+
+    argv[0] = (uint32_t)dsc;
+    argv[1] = (uint32_t)type;
+    argv[2] = (uint32_t)pdata;
+    argv[3] = (uint32_t)n;
+    LVGL_CALL_FUNC(LV_TIMER_CTX_GET_DATA, argv);
+
+    return (int)argv[0];
+}
+
+int lv_timer_ctx_set_data(timer_context_t *dsc, int type, const void *pdata, int n)
+{
+    uint32_t argv[4];
+
+    argv[0] = (uint32_t)dsc;
+    argv[1] = (uint32_t)type;
+    argv[2] = (uint32_t)pdata;
+    argv[3] = (uint32_t)n;
+    LVGL_CALL_FUNC(LV_TIMER_CTX_SET_DATA, argv);
+
+    return (int)argv[0];
 }
 
 int lvgl_init(void)
