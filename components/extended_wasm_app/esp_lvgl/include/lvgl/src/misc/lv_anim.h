@@ -97,7 +97,10 @@ typedef struct _lv_anim_t {
     uint8_t run_round : 1;    /**< Indicates the animation has run in this round*/
     uint8_t start_cb_called : 1;    /**< Indicates that the `start_cb` was already called*/
 
-    void *env;
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+    void (*destructor)(void * ext_data);
+    void *ext_data;
+#endif
 } lv_anim_t;
 
 /**********************
@@ -470,6 +473,10 @@ int32_t lv_anim_path_bounce(const lv_anim_t * a);
  * @return      the current value to set
  */
 int32_t lv_anim_path_step(const lv_anim_t * a);
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+void lv_anim_set_external_data(lv_anim_t *anim, void * ext_data, void (*destructor)(void * ext_data));
+#endif
 
 /**********************
  *   GLOBAL VARIABLES

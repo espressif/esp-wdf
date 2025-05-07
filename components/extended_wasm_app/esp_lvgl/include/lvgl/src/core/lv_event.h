@@ -100,6 +100,11 @@ typedef struct _lv_event_t {
     uint8_t deleted : 1;
     uint8_t stop_processing : 1;
     uint8_t stop_bubbling : 1;
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+    void (*destructor)(void * data);
+    void *ext_data;
+#endif
 } lv_event_t;
 
 /**
@@ -130,14 +135,6 @@ typedef struct {
     lv_cover_res_t res;
     const lv_area_t * area;
 } lv_cover_check_info_t;
-
-typedef struct _lv_event_dsc_t {
-    lv_event_cb_t cb;
-    void * user_data;
-    lv_event_code_t filter : 8;
-
-    void *env;
-} lv_event_dsc_t;
 
 /**********************
  * GLOBAL PROTOTYPES
@@ -242,6 +239,10 @@ void _lv_event_mark_deleted(struct _lv_obj_t * obj);
  */
 struct _lv_event_dsc_t * lv_obj_add_event_cb(struct _lv_obj_t * obj, lv_event_cb_t event_cb, lv_event_code_t filter,
                                              void * user_data);
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+void lv_event_desc_set_external_data(struct _lv_event_dsc_t *dsc, void * data, void (*destructor)(void * data));
+#endif
 
 /**
  * Remove an event handler function for an object.

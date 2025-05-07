@@ -141,8 +141,6 @@ typedef struct {
     lv_img_header_t header; /**< A header describing the basics of the image*/
     uint32_t data_size;     /**< Size of the image in bytes*/
     const uint8_t * data;   /**< Pointer to the data of the image*/
-
-    void *env;
 } lv_img_dsc_t;
 
 /**********************

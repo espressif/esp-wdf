@@ -189,6 +189,11 @@ typedef struct _lv_obj_t {
     uint16_t h_layout   : 1;
     uint16_t w_layout   : 1;
     uint16_t being_deleted   : 1;
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+    void (*destructor)(void * ext_data);
+    void *ext_data;
+#endif
 } lv_obj_t;
 
 /**********************
@@ -379,6 +384,10 @@ static inline lv_coord_t lv_obj_dpx(const lv_obj_t * obj, lv_coord_t n)
 {
     return _LV_DPX_CALC(lv_disp_get_dpi(lv_obj_get_disp(obj)), n);
 }
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+void lv_obj_set_external_data(lv_obj_t *obj, void * ext_data, void (*destructor)(void * ext_data));
+#endif
 
 /**********************
  *      MACROS

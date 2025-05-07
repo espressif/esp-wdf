@@ -149,7 +149,10 @@ typedef struct _lv_disp_drv_t {
     void * user_data; /**< Custom display driver user data*/
 #endif
 
-    void *env;
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+    void (*destructor)(void * ext_data);
+    void *ext_data;
+#endif
 } lv_disp_drv_t;
 
 /**
@@ -360,6 +363,10 @@ lv_disp_t * lv_disp_get_next(lv_disp_t * disp);
 lv_disp_draw_buf_t * lv_disp_get_draw_buf(lv_disp_t * disp);
 
 void lv_disp_drv_use_generic_set_px_cb(lv_disp_drv_t * disp_drv, lv_img_cf_t cf);
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+void lv_disp_drv_set_external_data(lv_disp_drv_t *disp_drv, void * ext_data, void (*destructor)(void * ext_data));
+#endif
 
 /**********************
  *      MACROS

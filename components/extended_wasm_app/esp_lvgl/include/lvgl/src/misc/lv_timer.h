@@ -48,7 +48,11 @@ typedef struct _lv_timer_t {
     void * user_data; /**< Custom user data*/
     int32_t repeat_count; /**< 1: One time;  -1 : infinity;  n>0: residual times*/
     uint32_t paused : 1;
-    void *env;
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+    void (*destructor)(void * ext_data);
+    void *ext_data;
+#endif
 } lv_timer_t;
 
 /**********************
@@ -172,6 +176,10 @@ uint8_t lv_timer_get_idle(void);
  * @return the next timer or NULL if there is no more timer
  */
 lv_timer_t * lv_timer_get_next(lv_timer_t * timer);
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+void lv_timer_set_external_data(lv_timer_t *timer, void * ext_data, void (*destructor)(void * ext_data));
+#endif
 
 /**********************
  *      MACROS
