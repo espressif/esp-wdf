@@ -32,7 +32,6 @@ enum {
 };
 typedef uint8_t lv_colorwheel_mode_t;
 
-
 /*Data of color picker*/
 typedef struct {
     lv_obj_t obj;
@@ -55,7 +54,7 @@ extern const lv_obj_class_t lv_colorwheel_class;
  **********************/
 
 /**
- * Create a color picker objects with disc shape
+ * Create a color picker object with disc shape
  * @param parent pointer to an object, it will be the parent of the new color picker
  * @param knob_recolor true: set the knob's color to the current color
  * @return pointer to the created color picker
@@ -139,4 +138,3 @@ bool lv_colorwheel_get_color_mode_fixed(lv_obj_t * obj);
 #endif
 
 #endif /*LV_COLORWHEEL_H*/
-

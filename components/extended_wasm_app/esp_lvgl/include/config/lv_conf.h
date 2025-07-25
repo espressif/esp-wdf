@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef LV_CONF_H
+#define LV_CONF_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,7 +22,6 @@ extern "C" {
 #define CONFIG_LV_CONF_SKIP 1
 #define CONFIG_LV_COLOR_DEPTH_16 1
 #define CONFIG_LV_COLOR_DEPTH 16
-#define CONFIG_LV_COLOR_16_SWAP 1
 #define CONFIG_LV_COLOR_MIX_ROUND_OFS 128
 #define CONFIG_LV_COLOR_CHROMA_KEY_HEX 0x00FF00
 #define CONFIG_LV_MEM_CUSTOM 1
@@ -33,8 +33,8 @@ extern "C" {
 #define CONFIG_LV_DPI_DEF 130
 #define CONFIG_LV_DRAW_COMPLEX 1
 #define CONFIG_LV_SHADOW_CACHE_SIZE 0
-#define CONFIG_LV_CIRCLE_CACHE_SIZE 4
-#define CONFIG_LV_IMG_CACHE_DEF_SIZE 0
+#define CONFIG_LV_CIRCLE_CACHE_SIZE 10
+#define CONFIG_LV_IMG_CACHE_DEF_SIZE 5
 #define CONFIG_LV_DISP_ROT_MAX_BUF 10240
 #define CONFIG_LV_USE_ASSERT_NULL 1
 #define CONFIG_LV_USE_ASSERT_MALLOC 1
@@ -120,7 +120,14 @@ extern "C" {
 #define CONFIG_LV_SPRINTF_CUSTOM 1
 #define CONFIG_LV_FONT_FMT_TXT_LARGE 1
 #define CONFIG_LV_USE_QRCODE 1
+#define CONFIG_LV_USE_PERF_MONITOR 1
+#define CONFIG_LV_COLOR_SCREEN_TRANSP 1
+#define CONFIG_LV_USE_FONT_COMPRESSED 1
+#define CONFIG_LV_MEM_SIZE_KILOBYTES 48
+#define CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR 1
 
 #ifdef __cplusplus
 }
 #endif
+
+#endif /*LV_CONF_H*/

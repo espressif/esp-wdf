@@ -13,10 +13,13 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
+#include "lvgl.h"
 
 /*********************
  *      DEFINES
  *********************/
+
+#define LV_DEMO_STRESS_TIME_STEP    50
 
 /**********************
  *      TYPEDEFS
@@ -26,6 +29,8 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 void lv_demo_stress(void);
+
+void lv_demo_stress_close(void);
 
 /**********************
  *      MACROS

@@ -178,6 +178,15 @@ void lv_area_move(lv_area_t * area, lv_coord_t x_ofs, lv_coord_t y_ofs);
 bool _lv_area_intersect(lv_area_t * res_p, const lv_area_t * a1_p, const lv_area_t * a2_p);
 
 /**
+ * Get resulting sub areas after removing the common parts of two areas from the first area
+ * @param res_p pointer to an array of areas with a count of 4, the resulting areas will be stored here
+ * @param a1_p pointer to the first area
+ * @param a2_p pointer to the second area
+ * @return number of results (max 4) or -1 if no intersect
+ */
+int8_t _lv_area_diff(lv_area_t * res_p, const lv_area_t * a1_p, const lv_area_t * a2_p);
+
+/**
  * Join two areas into a third which involves the other two
  * @param res_p pointer to an area, the result will be stored here
  * @param a1_p pointer to the first area
@@ -211,7 +220,6 @@ bool _lv_area_is_on(const lv_area_t * a1_p, const lv_area_t * a2_p);
  */
 bool _lv_area_is_in(const lv_area_t * ain_p, const lv_area_t * aholder_p, lv_coord_t radius);
 
-
 /**
  * Check if an area is fully out of an other
  * @param aout_p pointer to an area which could be in 'aholder_p'
@@ -222,6 +230,13 @@ bool _lv_area_is_in(const lv_area_t * ain_p, const lv_area_t * aholder_p, lv_coo
 bool _lv_area_is_out(const lv_area_t * aout_p, const lv_area_t * aholder_p, lv_coord_t radius);
 
 /**
+ * Check if 2 area is the same
+ * @param a pointer to an area
+ * @param b pointer to another area
+ */
+bool _lv_area_is_equal(const lv_area_t * a, const lv_area_t * b);
+
+/**
  * Align an area to an other
  * @param base an are where the other will be aligned
  * @param to_align the area to align
@@ -229,14 +244,16 @@ bool _lv_area_is_out(const lv_area_t * aout_p, const lv_area_t * aholder_p, lv_c
  */
 void lv_area_align(const lv_area_t * base, lv_area_t * to_align, lv_align_t align, lv_coord_t ofs_x, lv_coord_t ofs_y);
 
+void lv_point_transform(lv_point_t * p, int32_t angle, int32_t zoom, const lv_point_t * pivot);
+
 /**********************
  *      MACROS
  **********************/
 
 #if LV_USE_LARGE_COORD
-#define _LV_COORD_TYPE_SHIFT    (29)
+#define _LV_COORD_TYPE_SHIFT    (29U)
 #else
-#define _LV_COORD_TYPE_SHIFT    (13)
+#define _LV_COORD_TYPE_SHIFT    (13U)
 #endif
 
 #define _LV_COORD_TYPE_MASK     (3 << _LV_COORD_TYPE_SHIFT)
@@ -247,7 +264,7 @@ void lv_area_align(const lv_area_t * base, lv_area_t * to_align, lv_align_t alig
 #define _LV_COORD_TYPE_SPEC     (1 << _LV_COORD_TYPE_SHIFT)
 #define _LV_COORD_TYPE_PX_NEG   (3 << _LV_COORD_TYPE_SHIFT)
 
-#define LV_COORD_IS_PX(x)       (_LV_COORD_TYPE(x) == _LV_COORD_TYPE_PX) || \
+#define LV_COORD_IS_PX(x)       (_LV_COORD_TYPE(x) == _LV_COORD_TYPE_PX || \
                                  _LV_COORD_TYPE(x) == _LV_COORD_TYPE_PX_NEG ? true : false)
 #define LV_COORD_IS_SPEC(x)     (_LV_COORD_TYPE(x) == _LV_COORD_TYPE_SPEC ? true : false)
 

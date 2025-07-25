@@ -319,6 +319,15 @@
 #define LV_QRCODE_UPDATE                302
 #define LV_GROUP_FOCUS_OBJ              303
 #define LV_GROUP_FOCUS_FREEZE           304
+#define LV_DISP_GET_REFR_TIMER          305
+#define LV_TIMER_SET_PERIOD             306
+#define LV_ANIM_GET_TIMER               307
+#define LV_DISP_GET_DATA                308
+#define LV_ANIM_TIMER_GET_DATA          309
+#define LV_TABLE_SET_ROW_CNT            310
+#define LV_OBJ_GET_STYLE_OPA_RECURSIVE  311
+#define LV_TIMER_CTX_GET_DATA           312
+#define LV_TIMER_CTX_SET_DATA           313
 
 /**
   * @brief  Call LVGL functions in runtime level.
@@ -330,6 +339,22 @@
   * @return None.
   */
 void esp_lvgl_call_native_func(int32_t func_id, uint32_t argc, uint32_t *argv);
+
+/**
+  * @brief  Initialize LVGL library and related hardware.
+  *
+  * @param  version LVGL version
+  *
+  * @return 0 if success or a negative value if failed.
+  */
+int esp_lvgl_init(uint32_t version);
+
+/**
+  * @brief  Deinitialize LVGL library and related hardware.
+  *
+  * @return 0 if success or a negative value if failed.
+  */
+int esp_lvgl_deinit(void);
 
 #ifdef __cplusplus
 }

@@ -13,6 +13,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 #include "../lv_conf_internal.h"
+#include "../hal/lv_hal_tick.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -47,7 +48,11 @@ typedef struct _lv_timer_t {
     void * user_data; /**< Custom user data*/
     int32_t repeat_count; /**< 1: One time;  -1 : infinity;  n>0: residual times*/
     uint32_t paused : 1;
-    void *env;
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+    void (*destructor)(void * ext_data);
+    void *ext_data;
+#endif
 } lv_timer_t;
 
 /**********************
@@ -65,9 +70,27 @@ void _lv_timer_core_init(void);
  * Call it periodically to handle lv_timers.
  * @return time till it needs to be run next (in ms)
  */
-LV_ATTRIBUTE_TIMER_HANDLER uint32_t lv_timer_handler(void);
+uint32_t /* LV_ATTRIBUTE_TIMER_HANDLER */ lv_timer_handler(void);
 
 //! @endcond
+
+/**
+ * Call it in the super-loop of main() or threads. It will run lv_timer_handler()
+ * with a given period in ms. You can use it with sleep or delay in OS environment.
+ * This function is used to simplify the porting.
+ * @param __ms the period for running lv_timer_handler()
+ */
+static inline uint32_t LV_ATTRIBUTE_TIMER_HANDLER lv_timer_handler_run_in_period(uint32_t ms)
+{
+    static uint32_t last_tick = 0;
+    uint32_t curr_tick = lv_tick_get();
+
+    if((curr_tick - last_tick) >= (ms)) {
+        last_tick = curr_tick;
+        return lv_timer_handler();
+    }
+    return 1;
+}
 
 /**
  * Create an "empty" timer. It needs to initialized with at least
@@ -153,6 +176,10 @@ uint8_t lv_timer_get_idle(void);
  * @return the next timer or NULL if there is no more timer
  */
 lv_timer_t * lv_timer_get_next(lv_timer_t * timer);
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+void lv_timer_set_external_data(lv_timer_t *timer, void * ext_data, void (*destructor)(void * ext_data));
+#endif
 
 /**********************
  *      MACROS

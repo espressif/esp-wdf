@@ -10,7 +10,6 @@
 extern "C" {
 #endif
 
-
 /*********************
  *      INCLUDES
  *********************/
@@ -25,9 +24,6 @@ extern "C" {
 #define LV_MASK_ID_INV  (-1)
 #if LV_DRAW_COMPLEX
 # define _LV_MASK_MAX_NUM     16
-# ifndef _LV_MASK_BUF_MAX_SIZE
-#  define _LV_MASK_BUF_MAX_SIZE  2048    /*Should be >= than the max hor res*/
-# endif
 #else
 # define _LV_MASK_MAX_NUM     1
 #endif
@@ -52,8 +48,6 @@ typedef struct {
 
 typedef _lv_draw_mask_saved_t _lv_draw_mask_saved_arr_t[_LV_MASK_MAX_NUM];
 
-
-
 #if LV_DRAW_COMPLEX == 0
 static inline  uint8_t lv_draw_mask_get_cnt(void)
 {
@@ -76,6 +70,7 @@ enum {
     LV_DRAW_MASK_TYPE_RADIUS,
     LV_DRAW_MASK_TYPE_FADE,
     LV_DRAW_MASK_TYPE_MAP,
+    LV_DRAW_MASK_TYPE_POLYGON,
 };
 
 typedef uint8_t lv_draw_mask_type_t;
@@ -181,7 +176,6 @@ typedef struct {
     _lv_draw_mask_radius_circle_dsc_t * circle;
 } lv_draw_mask_radius_param_t;
 
-
 typedef struct {
     /*The first element must be the common descriptor*/
     _lv_draw_mask_common_dsc_t dsc;
@@ -196,7 +190,6 @@ typedef struct {
 
 } lv_draw_mask_fade_param_t;
 
-
 typedef struct _lv_draw_mask_map_param_t {
     /*The first element must be the common descriptor*/
     _lv_draw_mask_common_dsc_t dsc;
@@ -207,6 +200,15 @@ typedef struct _lv_draw_mask_map_param_t {
     } cfg;
 } lv_draw_mask_map_param_t;
 
+typedef struct {
+    /*The first element must be the common descriptor*/
+    _lv_draw_mask_common_dsc_t dsc;
+
+    struct {
+        lv_point_t * points;
+        uint16_t point_cnt;
+    } cfg;
+} lv_draw_mask_polygon_param_t;
 
 /**********************
  * GLOBAL PROTOTYPES
@@ -233,8 +235,8 @@ int16_t lv_draw_mask_add(void * param, void * custom_id);
  * - `LV_DRAW_MASK_RES_FULL_COVER`: the whole line is fully visible. `mask_buf` is unchanged
  * - `LV_DRAW_MASK_RES_CHANGED`: `mask_buf` has changed, it shows the desired opacity of each pixel in the given line
  */
-LV_ATTRIBUTE_FAST_MEM lv_draw_mask_res_t lv_draw_mask_apply(lv_opa_t * mask_buf, lv_coord_t abs_x, lv_coord_t abs_y,
-                                                            lv_coord_t len);
+lv_draw_mask_res_t /* LV_ATTRIBUTE_FAST_MEM */ lv_draw_mask_apply(lv_opa_t * mask_buf, lv_coord_t abs_x,
+                                                                  lv_coord_t abs_y, lv_coord_t len);
 
 /**
  * Apply the specified buffers on a line. Used internally by the library's drawing routines.
@@ -249,8 +251,9 @@ LV_ATTRIBUTE_FAST_MEM lv_draw_mask_res_t lv_draw_mask_apply(lv_opa_t * mask_buf,
  * - `LV_DRAW_MASK_RES_FULL_COVER`: the whole line is fully visible. `mask_buf` is unchanged
  * - `LV_DRAW_MASK_RES_CHANGED`: `mask_buf` has changed, it shows the desired opacity of each pixel in the given line
  */
-LV_ATTRIBUTE_FAST_MEM lv_draw_mask_res_t lv_draw_mask_apply_ids(lv_opa_t * mask_buf, lv_coord_t abs_x, lv_coord_t abs_y,
-                                                                lv_coord_t len, const int16_t *ids, int16_t ids_count);
+lv_draw_mask_res_t /* LV_ATTRIBUTE_FAST_MEM */ lv_draw_mask_apply_ids(lv_opa_t * mask_buf, lv_coord_t abs_x,
+                                                                      lv_coord_t abs_y, lv_coord_t len,
+                                                                      const int16_t * ids, int16_t ids_count);
 
 //! @endcond
 
@@ -272,7 +275,7 @@ void * lv_draw_mask_remove_custom(void * custom_id);
 
 /**
  * Free the data from the parameter.
- * It's called inside  `lv_draw_mask_remove_id` and `lv_draw_mask_remove_custom`
+ * It's called inside `lv_draw_mask_remove_id` and `lv_draw_mask_remove_custom`
  * Needs to be called only in special cases when the mask is not added by `lv_draw_mask_add`
  * and not removed by `lv_draw_mask_remove_id` or `lv_draw_mask_remove_custom`
  * @param p pointer to a mask parameter
@@ -291,8 +294,7 @@ void _lv_draw_mask_cleanup(void);
  * Count the currently added masks
  * @return number of active masks
  */
-LV_ATTRIBUTE_FAST_MEM uint8_t lv_draw_mask_get_cnt(void);
-
+uint8_t /* LV_ATTRIBUTE_FAST_MEM */ lv_draw_mask_get_cnt(void);
 
 /**
  * Check if there is any added draw mask
@@ -343,7 +345,7 @@ void lv_draw_mask_angle_init(lv_draw_mask_angle_param_t * param, lv_coord_t vert
 
 /**
  * Initialize a fade mask.
- * @param param param pointer to a `lv_draw_mask_param_t` to initialize
+ * @param param pointer to an `lv_draw_mask_radius_param_t` to initialize
  * @param rect coordinates of the rectangle to affect (absolute coordinates)
  * @param radius radius of the rectangle
  * @param inv true: keep the pixels inside the rectangle; keep the pixels outside of the rectangle
@@ -370,6 +372,8 @@ void lv_draw_mask_fade_init(lv_draw_mask_fade_param_t * param, const lv_area_t *
  * @param map array of bytes with the mask values
  */
 void lv_draw_mask_map_init(lv_draw_mask_map_param_t * param, const lv_area_t * coords, const lv_opa_t * map);
+
+void lv_draw_mask_polygon_init(lv_draw_mask_polygon_param_t * param, const lv_point_t * points, uint16_t point_cnt);
 
 #endif /*LV_DRAW_COMPLEX*/
 

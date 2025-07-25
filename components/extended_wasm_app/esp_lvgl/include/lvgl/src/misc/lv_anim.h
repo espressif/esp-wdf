@@ -40,6 +40,7 @@ typedef enum {
 } lv_anim_enable_t;
 
 struct _lv_anim_t;
+struct _lv_timer_t;
 
 /** Get the current value during an animation*/
 typedef int32_t (*lv_anim_path_cb_t)(const struct _lv_anim_t *);
@@ -65,12 +66,16 @@ typedef void (*lv_anim_start_cb_t)(struct _lv_anim_t *);
 /** Callback used when the animation values are relative to get the current value*/
 typedef int32_t (*lv_anim_get_value_cb_t)(struct _lv_anim_t *);
 
+/** Callback used when the animation is deleted*/
+typedef void (*lv_anim_deleted_cb_t)(struct _lv_anim_t *);
+
 /** Describes an animation*/
 typedef struct _lv_anim_t {
     void * var;                          /**<Variable to animate*/
     lv_anim_exec_xcb_t exec_cb;          /**< Function to execute to animate*/
     lv_anim_start_cb_t start_cb;         /**< Call it when the animation is starts (considering `delay`)*/
     lv_anim_ready_cb_t ready_cb;         /**< Call it when the animation is ready*/
+    lv_anim_deleted_cb_t deleted_cb;     /**< Call it when the animation is deleted*/
     lv_anim_get_value_cb_t get_value_cb; /**< Get the current value in relative mode*/
 #if LV_USE_USER_DATA
     void * user_data; /**< Custom user data*/
@@ -92,7 +97,10 @@ typedef struct _lv_anim_t {
     uint8_t run_round : 1;    /**< Indicates the animation has run in this round*/
     uint8_t start_cb_called : 1;    /**< Indicates that the `start_cb` was already called*/
 
-    void *env;
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+    void (*destructor)(void * ext_data);
+    void *ext_data;
+#endif
 } lv_anim_t;
 
 /**********************
@@ -207,7 +215,7 @@ static inline void lv_anim_set_start_cb(lv_anim_t * a, lv_anim_start_cb_t start_
 
 /**
  * Set a function to use the current value of the variable and make start and end value
- * relative the the returned current value.
+ * relative to the returned current value.
  * @param a             pointer to an initialized `lv_anim_t` variable
  * @param get_value_cb  a function call when the animation starts
  */
@@ -224,6 +232,16 @@ static inline void lv_anim_set_get_value_cb(lv_anim_t * a, lv_anim_get_value_cb_
 static inline void lv_anim_set_ready_cb(lv_anim_t * a, lv_anim_ready_cb_t ready_cb)
 {
     a->ready_cb = ready_cb;
+}
+
+/**
+ * Set a function call when the animation is deleted.
+ * @param a         pointer to an initialized `lv_anim_t` variable
+ * @param deleted_cb  a function call when the animation is deleted
+ */
+static inline void lv_anim_set_deleted_cb(lv_anim_t * a, lv_anim_deleted_cb_t deleted_cb)
+{
+    a->deleted_cb = deleted_cb;
 }
 
 /**
@@ -348,6 +366,12 @@ void lv_anim_del_all(void);
 lv_anim_t * lv_anim_get(void * var, lv_anim_exec_xcb_t exec_cb);
 
 /**
+ * Get global animation refresher timer.
+ * @return pointer to the animation refresher timer.
+ */
+struct _lv_timer_t * lv_anim_get_timer(void);
+
+/**
  * Delete an animation by getting the animated variable from `a`.
  * Only animations with `exec_cb` will be deleted.
  * This function exists because it's logical that all anim. functions receives an
@@ -449,6 +473,10 @@ int32_t lv_anim_path_bounce(const lv_anim_t * a);
  * @return      the current value to set
  */
 int32_t lv_anim_path_step(const lv_anim_t * a);
+
+#ifdef CONFIG_LV_EXTERNAL_DATA_AND_DESTUCTOR
+void lv_anim_set_external_data(lv_anim_t *anim, void * ext_data, void (*destructor)(void * ext_data));
+#endif
 
 /**********************
  *   GLOBAL VARIABLES

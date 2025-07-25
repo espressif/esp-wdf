@@ -29,11 +29,12 @@ extern "C" {
 #define LV_OBJ_DRAW_PART_DSC_VALUE        4 /*!< type of set/get lv_obj_draw_part_dsc_t->value */
 #define LV_OBJ_DRAW_PART_DSC_P1           5 /*!< type of set/get lv_obj_draw_part_dsc_t->p1 */
 #define LV_OBJ_DRAW_PART_DSC_P2           6 /*!< type of set/get lv_obj_draw_part_dsc_t->p2 */
-#define LV_OBJ_DRAW_PART_DSC_CLIP_AREA    7 /*!< type of set/get lv_obj_draw_part_dsc_t->clip_area */
+#define LV_OBJ_DRAW_PART_DSC_CLIP_AREA    7 /*!< type of set/get lv_draw_ctx_t->clip_area */
 #define LV_OBJ_DRAW_PART_DSC_DRAW_AREA    8 /*!< type of set/get lv_obj_draw_part_dsc_t->draw_area */
 #define LV_OBJ_DRAW_PART_DSC_RECT_DSC     9 /*!< type of set/get lv_obj_draw_part_dsc_t->rect_dsc */
 #define LV_OBJ_DRAW_PART_DSC_LINE_DSC     10 /*!< type of set/get lv_obj_draw_part_dsc_t->line_dsc */
 #define LV_OBJ_DRAW_PART_DSC_SUB_PART_PTR 11 /*!< type of set/get lv_obj_draw_part_dsc_t->sub_part_ptr */
+#define LV_OBJ_DRAW_PART_DSC_DRAW_CTX     12 /*!< type of set/get lv_obj_draw_part_dsc_t->draw_ctx */
 
 #define LV_CHART_SERIES_COLOR             0 /*!< type of set/get lv_chart_series_t->color */
 
@@ -66,6 +67,32 @@ extern "C" {
 #define LV_FONT_UNSCII_16_FONT 24
 #define LV_FONT_DEJAVU_16_PERSIAN_HEBREW_FONT 25
 #define LV_FONT_SIMSUN_16_CJK_FONT 26
+#define LV_FONT_BENCHMARK_MONTSERRAT_12_COMPR_AZ_FONT 27
+#define LV_FONT_BENCHMARK_MONTSERRAT_16_COMPR_AZ_FONT 28
+#define LV_FONT_BENCHMARK_MONTSERRAT_28_COMPR_AZ_FONT 29
+
+#define LV_TIMER_CTX_COUNT_VAL 0
+
+/* ESP-Wasmachine LVGL version: 0.1.0 */
+#define WM_LV_VERSION_MAJOR 0
+#define WM_LV_VERSION_MINOR 1
+#define WM_LV_VERSION_PATCH 0
+
+typedef struct {
+    lv_obj_t *scr;
+    int count_val;
+} timer_context_t;
+
+/**
+  * @brief  Check whether the LVGL library is initialized.
+  *
+  * This function returns the initialization status of LVGL. It can be used
+  * to guard LVGL API calls that require prior initialization.
+  *
+  * @return true  if LVGL is initialized and ready to use,
+  *         false if LVGL is not initialized or has been deinitialized.
+  */
+bool lvgl_is_inited(void);
 
 /**
   * @brief  Initialize LVGL library and related hardware.
@@ -73,6 +100,13 @@ extern "C" {
   * @return 0 if success or a negative value if failed.
   */
 int lvgl_init(void);
+
+/**
+  * @brief  Deinitialize LVGL library and related hardware.
+  *
+  * @return 0 if success or a negative value if failed.
+  */
+int lvgl_deinit(void);
 
 /**
   * @brief  Lock LVGL, and then users can add or remove LVGL controls.
@@ -171,6 +205,54 @@ const lv_font_t *lv_font_get_font(int type);
   * @return 0 if success or a negative value if failed.
   */
 int lv_font_get_data(const lv_font_t * font, int type, void *pdata, int n);
+
+/**
+  * @brief  Get member value of structure of lv_disp_t.
+  *
+  * @param  disp LV display pointer
+  * @param  pdata Destination buffer pointer to store the retrieved data
+  * @param  n Size of the destination buffer
+  *
+  * @return 0 if success or a negative value if failed (e.g., invalid parameters or buffer overflow).
+  */
+int lv_disp_get_data(lv_disp_t *disp, void *pdata, int n);
+
+/**
+  * @brief  Get member value of structure of animation timer (lv_timer_t used in animations).
+  *
+  * @param  anim_timer Animation timer pointer (must be an animation-related timer)
+  * @param  pdata Destination buffer pointer to store the retrieved data
+  * @param  n Size of the destination buffer
+  *
+  * @return 0 if success or a negative value if failed (e.g., invalid timer type or insufficient buffer).
+  */
+int lv_anim_timer_get_data(lv_timer_t *anim_timer, void *pdata, int n);
+
+/**
+  * @brief  Get member value of structure of timer_context_t.
+  *         Only LV_TIMER_CTX_COUNT_VAL is supported.
+  *
+  * @param  dsc Timer context description pointer
+  * @param  type Target structure member type identifier
+  * @param  pdata Destination buffer pointer to store the retrieved data
+  * @param  n Size of the destination buffer
+  *
+  * @return 0 if success or a negative value if failed.
+  */
+int lv_timer_ctx_get_data(const timer_context_t *dsc, int type, void *pdata, int n);
+
+/**
+  * @brief  Set member value of structure of timer_context_t.
+  *         Only LV_TIMER_CTX_COUNT_VAL is supported.
+  *
+  * @param  dsc Timer context description pointer
+  * @param  type Target structure member type identifier
+  * @param  pdata Source buffer pointer containing the data to set
+  * @param  n Size of the source data
+  *
+  * @return 0 if success or a negative value if failed.
+  */
+int lv_timer_ctx_set_data(timer_context_t *dsc, int type, const void *pdata, int n);
 
 #ifdef __cplusplus
 }

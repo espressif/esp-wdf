@@ -17,19 +17,47 @@
 #include "lv_demo_stress.h"
 #include "esp_lvgl.h"
 
-int main(void)
+void on_init(void)
 {
     int ret;
 
     ret = lvgl_init();
     if (ret != 0) {
-        printf("faield to lvgl_init ret=%d\n", ret);
-        return -1;
+        printf("Faield to lvgl_init ret=%d\n", ret);
+        return;
     }
 
     lvgl_lock();
     lv_demo_stress();
     lvgl_unlock();
+}
+
+void on_destroy()
+{
+    if (!lvgl_is_inited()) {
+        return;
+    }
+
+    int ret;
+
+    printf("Close LVGL stress demo\n");
+    lvgl_lock();
+    lv_demo_stress_close();
+    lvgl_unlock();
+
+    ret = lvgl_deinit();
+    if (ret != 0) {
+        printf("Faield to lvgl_deinit ret=%d\n", ret);
+    }
+}
+
+int main(void)
+{
+    on_init();
+
+    if (!lvgl_is_inited()) {
+        return -1;
+    }
 
     while (1) {
         sleep(3600);

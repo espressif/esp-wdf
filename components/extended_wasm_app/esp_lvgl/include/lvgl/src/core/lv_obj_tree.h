@@ -20,7 +20,6 @@ extern "C" {
  *      DEFINES
  *********************/
 
-
 /**********************
  *      TYPEDEFS
  **********************/
@@ -97,8 +96,8 @@ void lv_obj_swap(struct _lv_obj_t * obj1, struct _lv_obj_t * obj2);
  * moves the object to the given index in its parent.
  * When used in listboxes, it can be used to sort the listbox items.
  * @param obj  pointer to the object to be moved.
- * @param index  new index in parent.
- * @note to move to the foreground: lv_obj_move_to_index(obj, 0)
+ * @param index  new index in parent. -1 to count from the back
+ * @note to move to the background: lv_obj_move_to_index(obj, 0)
  * @note to move forward (up): lv_obj_move_to_index(obj, lv_obj_get_index(obj) - 1)
  */
 void lv_obj_move_to_index(struct _lv_obj_t * obj, int32_t index);
@@ -163,7 +162,6 @@ void lv_obj_tree_walk(struct _lv_obj_t * start_obj, lv_obj_tree_walk_cb_t cb, vo
 /**********************
  *      MACROS
  **********************/
-
 
 #ifdef __cplusplus
 } /*extern "C"*/

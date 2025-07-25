@@ -21,6 +21,8 @@ extern "C" {
 #include "sjpg/lv_sjpg.h"
 #include "freetype/lv_freetype.h"
 #include "rlottie/lv_rlottie.h"
+#include "ffmpeg/lv_ffmpeg.h"
+#include "tiny_ttf/lv_tiny_ttf.h"
 
 /*********************
  *      DEFINES
@@ -42,4 +44,4 @@ extern "C" {
 } /*extern "C"*/
 #endif
 
-#endif /*LV_LAYOUTS_H*/
+#endif /*LV_LIBS_H*/
