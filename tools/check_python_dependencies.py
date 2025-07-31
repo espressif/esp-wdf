@@ -7,7 +7,9 @@ import argparse
 import os
 import re
 import sys
+import warnings
 
+warnings.filterwarnings('ignore', category=DeprecationWarning)
 try:
     import pkg_resources
 except Exception:
