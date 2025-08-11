@@ -19,6 +19,22 @@ extern "C" {
 #endif
 
 #include "lvgl.h"
+#include <stdio.h>
+#include <string.h>
+
+#define LV_SYS_PERF_INFO_CALC             0
+
+#define LV_DRAW_BORDER_DSC_COLOR          0
+#define LV_DRAW_BORDER_DSC_WIDTH          1
+#define LV_DRAW_BORDER_DSC_SIDE           2
+
+#define LV_DRAW_LABEL_DSC_COLOR           0
+
+#define LV_DRAW_FILL_DSC_COLOR            0
+
+#define LV_DRAW_TASK_DSC_BASE             0 /*!< type of set/get lv_obj_t->coords */
+
+#define LV_SYSMON_BACKEND_DATA            0 /*!< type of set/get lv_obj_t->coords */
 
 #define LV_OBJ_COORDS                     0 /*!< type of set/get lv_obj_t->coords */
 
@@ -36,7 +52,33 @@ extern "C" {
 #define LV_OBJ_DRAW_PART_DSC_SUB_PART_PTR 11 /*!< type of set/get lv_obj_draw_part_dsc_t->sub_part_ptr */
 #define LV_OBJ_DRAW_PART_DSC_DRAW_CTX     12 /*!< type of set/get lv_obj_draw_part_dsc_t->draw_ctx */
 
+#define LV_DRAW_RECT_DSC_BASE         0 /*!< type of set/get lv_obj_draw_part_dsc_t->type */
+#define LV_DRAW_RECT_DSC_RADIUS       1 /*!< type of set/get lv_obj_draw_part_dsc_t->part */
+#define LV_DRAW_RECT_DSC_BG_OPA           2 /*!< type of set/get lv_obj_draw_part_dsc_t->id */
+#define LV_DRAW_RECT_DSC_BG_COLOR         3 /*!< type of set/get lv_obj_draw_part_dsc_t->text */
+#define LV_DRAW_RECT_DSC_BG_GRAD        4 /*!< type of set/get lv_obj_draw_part_dsc_t->value */
+#define LV_DRAW_RECT_DSC_BG_IMAGE_RECOLOR           5 /*!< type of set/get lv_obj_draw_part_dsc_t->p1 */
+#define LV_DRAW_RECT_DSC_BG_IMAGE_OPA           6 /*!< type of set/get lv_obj_draw_part_dsc_t->p2 */
+#define LV_DRAW_RECT_DSC_BG_IMAGE_RECOLOR_OPA    7 /*!< type of set/get lv_draw_ctx_t->clip_area */
+#define LV_DRAW_RECT_DSC_BG_IMAGE_TILED    8 /*!< type of set/get lv_obj_draw_part_dsc_t->draw_area */
+
+#define LV_DRAW_DSC_BASE_OBJ         0 /*!< type of set/get lv_obj_draw_part_dsc_t->type */
+#define LV_DRAW_DSC_BASE_PART       1 /*!< type of set/get lv_obj_draw_part_dsc_t->part */
+#define LV_DRAW_DSC_BASE_ID1           2 /*!< type of set/get lv_obj_draw_part_dsc_t->id */
+#define LV_DRAW_DSC_BASE_ID2         3 /*!< type of set/get lv_obj_draw_part_dsc_t->text */
+#define LV_DRAW_DSC_BASE_LAYER        4 /*!< type of set/get lv_obj_draw_part_dsc_t->value */
+#define LV_DRAW_DSC_BASE_DSC_SIZE           5 /*!< type of set/get lv_obj_draw_part_dsc_t->p1 */
+
+#define LV_DRAW_LINE_DSC_BASE         0 /*!< type of set/get lv_obj_draw_part_dsc_t->type */
+#define LV_DRAW_LINE_DSC_P1       1 /*!< type of set/get lv_obj_draw_part_dsc_t->part */
+#define LV_DRAW_LINE_DSC_P2           2 /*!< type of set/get lv_obj_draw_part_dsc_t->id */
+#define LV_DRAW_LINE_DSC_COLOR         3 /*!< type of set/get lv_obj_draw_part_dsc_t->text */
+#define LV_DRAW_LINE_DSC_WIDTH        4 /*!< type of set/get lv_obj_draw_part_dsc_t->value */
+#define LV_DRAW_LINE_DSC_DASH_WIDTH           5 /*!< type of set/get lv_obj_draw_part_dsc_t->p1 */
+
 #define LV_CHART_SERIES_COLOR             0 /*!< type of set/get lv_chart_series_t->color */
+
+#define LV_DRAW_FILL_DSC_RADIUS             0 /*!< type of set/get lv_chart_series_t->color */
 
 #define LV_FONT_LINE_HEIGHT               0 /*!< type of set/get lv_font_t->line_height */
 
@@ -68,8 +110,12 @@ extern "C" {
 #define LV_FONT_DEJAVU_16_PERSIAN_HEBREW_FONT 25
 #define LV_FONT_SIMSUN_16_CJK_FONT 26
 #define LV_FONT_BENCHMARK_MONTSERRAT_12_COMPR_AZ_FONT 27
-#define LV_FONT_BENCHMARK_MONTSERRAT_16_COMPR_AZ_FONT 28
-#define LV_FONT_BENCHMARK_MONTSERRAT_28_COMPR_AZ_FONT 29
+#define LV_FONT_BENCHMARK_MONTSERRAT_14_COMPR_AZ_FONT 28
+#define LV_FONT_BENCHMARK_MONTSERRAT_16_COMPR_AZ_FONT 29
+#define LV_FONT_BENCHMARK_MONTSERRAT_18_COMPR_AZ_FONT 30
+#define LV_FONT_BENCHMARK_MONTSERRAT_20_COMPR_AZ_FONT 31
+#define LV_FONT_BENCHMARK_MONTSERRAT_24_COMPR_AZ_FONT 32
+#define LV_FONT_BENCHMARK_MONTSERRAT_26_COMPR_AZ_FONT 33
 
 #define LV_TIMER_CTX_COUNT_VAL 0
 
@@ -77,6 +123,9 @@ extern "C" {
 #define WM_LV_VERSION_MAJOR 0
 #define WM_LV_VERSION_MINOR 1
 #define WM_LV_VERSION_PATCH 0
+
+#define lv_snprintf  snprintf
+#define lv_memset    memset
 
 typedef struct {
     lv_obj_t *scr;
@@ -124,7 +173,7 @@ void lvgl_unlock(void);
   * @param  disp display pointer
   * @param  cb monitor callback function
   */
-void lv_disp_set_monitor_cb(lv_disp_t *disp, void *cb);
+void lv_disp_set_monitor_cb(lv_display_t *disp, void *cb);
 
 /**
   * @brief  Get user_data of lv_timer_t.
@@ -158,7 +207,7 @@ int lv_obj_get_data(const lv_obj_t *obj, int type, void *pdata, int n);
   *
   * @return 0 if success or a negative value if failed.
   */
-int lv_obj_draw_part_dsc_get_data(const lv_obj_draw_part_dsc_t *dsc, int type, void *pdata, int n);
+int lv_draw_rect_dsc_get_data(lv_draw_rect_dsc_t *dsc, int type, void *pdata, int n);
 
 /**
   * @brief  Set member value of structure of lv_obj_draw_part_dsc_t.
@@ -171,7 +220,7 @@ int lv_obj_draw_part_dsc_get_data(const lv_obj_draw_part_dsc_t *dsc, int type, v
   *
   * @return 0 if success or a negative value if failed.
   */
-int lv_obj_draw_part_dsc_set_data(lv_obj_draw_part_dsc_t *dsc, int type, const void *pdata, int n);
+int lv_draw_rect_dsc_set_data(lv_draw_rect_dsc_t *dsc, int type, const void *pdata, int n);
 
 /**
   * @brief  Get member value of structure of lv_chart_series_t.
@@ -183,7 +232,29 @@ int lv_obj_draw_part_dsc_set_data(lv_obj_draw_part_dsc_t *dsc, int type, const v
   *
   * @return 0 if success or a negative value if failed.
   */
-int lv_chart_series_get_data(const lv_chart_series_t * ser, int type, void *pdata, int n);
+//int lv_chart_series_get_data(const lv_chart_series_t * ser, int type, void *pdata, int n);
+
+int lv_draw_dsc_base_get_data(lv_draw_dsc_base_t *dsc, int type, void *pdata, int n);
+
+int lv_draw_dsc_base_set_data(lv_draw_dsc_base_t *dsc, int type, const void *pdata, int n);
+
+int lv_draw_line_dsc_get_data(lv_draw_line_dsc_t *dsc, int type, void *pdata, int n);
+
+int lv_draw_line_dsc_set_data(lv_draw_line_dsc_t *dsc, int type, const void *pdata, int n);
+
+int lv_draw_fill_dsc_get_data(const lv_draw_fill_dsc_t * dsc, int type, void *pdata, int n);
+
+int lv_draw_task_get_data(lv_draw_task_t *disp, int type, void *pdata, int n);
+
+int lv_draw_fill_dsc_set_data(lv_draw_fill_dsc_t *dsc, int type, const void *pdata, int n);
+
+int lv_draw_label_dsc_set_data(lv_draw_label_dsc_t *dsc, int type, const void *pdata, int n);
+
+int lv_draw_border_dsc_set_data(lv_draw_border_dsc_t *dsc, int type, const void *pdata, int n);
+
+#if LV_USE_PERF_MONITOR
+int lv_obj_get_sys_perf_data(lv_sysmon_perf_info_t *info, int type, void *pdata, int n);
+#endif
 
 /**
   * @brief  Get font pointer
@@ -207,7 +278,7 @@ const lv_font_t *lv_font_get_font(int type);
 int lv_font_get_data(const lv_font_t * font, int type, void *pdata, int n);
 
 /**
-  * @brief  Get member value of structure of lv_disp_t.
+  * @brief  Get member value of structure of lv_display_t.
   *
   * @param  disp LV display pointer
   * @param  pdata Destination buffer pointer to store the retrieved data
@@ -215,7 +286,7 @@ int lv_font_get_data(const lv_font_t * font, int type, void *pdata, int n);
   *
   * @return 0 if success or a negative value if failed (e.g., invalid parameters or buffer overflow).
   */
-int lv_disp_get_data(lv_disp_t *disp, void *pdata, int n);
+int lv_disp_get_data(lv_display_t *disp, void *pdata, int n);
 
 /**
   * @brief  Get member value of structure of animation timer (lv_timer_t used in animations).
