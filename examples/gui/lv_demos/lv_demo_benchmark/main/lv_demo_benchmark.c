@@ -8,6 +8,7 @@
  *********************/
 #include "lv_demo_benchmark.h"
 #include "esp_lvgl.h"
+#include <stdio.h>
 
 #if LV_USE_DEMO_WIDGETS
 #include "lv_demo_widgets.h"
@@ -530,12 +531,8 @@ void lv_demo_benchmark(void)
     next_scene_timer = lv_timer_create(next_scene_timer_cb, scenes[0].scene_time, NULL);
 
 #if LV_USE_PERF_MONITOR
-    lv_display_t * disp = lv_display_get_default();
-
-    lv_sysmon_backend_data_t sysmon_backend;
-    lv_obj_get_obs_data(disp, LV_SYSMON_BACKEND_DATA, &sysmon_backend, sizeof(sysmon_backend));
-
-    lv_subject_add_observer_obj(&sysmon_backend.subject, sysmon_perf_observer_cb, title, NULL);
+    lv_subject_t *subject = lv_obj_get_subject();
+    lv_subject_add_observer_obj(subject, sysmon_perf_observer_cb, title, NULL);
 #if LV_USE_PERF_MONITOR_LOG_MODE
     lv_obj_add_flag(title, LV_OBJ_FLAG_HIDDEN);
 #endif
@@ -546,19 +543,18 @@ void lv_demo_benchmark(void)
 
 void lv_demo_benchmark_close(void)
 {
-#if LV_USE_PERF_MONITOR
-    lv_display_t * disp = lv_display_get_default();
-    lv_sysmon_backend_data_t sysmon_backend;
-    lv_obj_get_obs_data(disp, LV_SYSMON_BACKEND_DATA, &sysmon_backend, sizeof(sysmon_backend));
-    lv_subject_add_observer_obj(&sysmon_backend, NULL, title, NULL);
-#endif
-
-    if(next_scene_timer) lv_timer_del(next_scene_timer);
+    if(next_scene_timer) lv_timer_delete(next_scene_timer);
     next_scene_timer = NULL;
 
-    lv_anim_del(NULL, NULL);
+    lv_anim_delete(NULL, NULL);
 
     lv_obj_clean(lv_screen_active());
+
+#if LV_USE_PERF_MONITOR
+    lv_subject_t *subject = lv_obj_get_subject();
+    lv_subject_add_observer_obj(subject, NULL, title, NULL);
+    lv_obj_remove_from_subject(title, subject);
+#endif
 }
 
 void lv_demo_benchmark_set_end_cb(lv_demo_benchmark_on_end_cb_t cb)
@@ -704,18 +700,20 @@ static void next_scene_timer_cb(lv_timer_t * timer)
             lv_demo_benchmark_summary_display(&summary);
         }
 
+        next_scene_timer = NULL;
     }
     else {
         lv_timer_set_period(timer, scenes[scene_act].scene_time);
     }
-
-    next_scene_timer = NULL;
 }
 
 #if LV_USE_PERF_MONITOR
 static void sysmon_perf_observer_cb(lv_observer_t * observer, lv_subject_t * subject)
 {
     const lv_sysmon_perf_info_t * info = lv_subject_get_pointer(subject);
+    calculated_t calc; 
+    lv_get_sys_perf_data(info, LV_SYS_PERF_INFO_CALC, &calc, sizeof(calculated_t));
+
     char scene_name[64];
 
     if(scenes[scene_act].name[0] != '\0') {
@@ -732,19 +730,19 @@ static void sysmon_perf_observer_cb(lv_observer_t * observer, lv_subject_t * sub
                           "%" LV_PRIu32" FPS, %" LV_PRIu32 "%% CPU\n"
                           "refr. %" LV_PRIu32" ms = %" LV_PRIu32 "ms render + %" LV_PRIu32" ms flush",
                           scene_name,
-                          info->calculated.fps, info->calculated.cpu,
-                          info->calculated.render_avg_time + info->calculated.flush_avg_time,
-                          info->calculated.render_avg_time, info->calculated.flush_avg_time);
+                          calc.fps, calc.cpu,
+                          calc.render_avg_time + calc.flush_avg_time,
+                          calc.render_avg_time, calc.flush_avg_time);
 #else
     LV_UNUSED(observer);
 #endif
 
     /*Ignore the first call as it contains data from the previous scene*/
     if(scenes[scene_act].measurement_cnt != 0) {
-        scenes[scene_act].cpu_avg_usage += info->calculated.cpu;
-        scenes[scene_act].fps_avg += info->calculated.fps;
-        scenes[scene_act].render_avg_time += info->calculated.render_avg_time;
-        scenes[scene_act].flush_avg_time += info->calculated.flush_avg_time;
+        scenes[scene_act].cpu_avg_usage += calc.cpu;
+        scenes[scene_act].fps_avg += calc.fps;
+        scenes[scene_act].render_avg_time += calc.render_avg_time;
+        scenes[scene_act].flush_avg_time += calc.flush_avg_time;
     }
     scenes[scene_act].measurement_cnt++;
 

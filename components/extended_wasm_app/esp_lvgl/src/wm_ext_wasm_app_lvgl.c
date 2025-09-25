@@ -26,6 +26,8 @@
                                                            sizeof(argv) / sizeof(argv[0]), \
                                                            argv)
 static bool is_lvgl_init = false;
+static char *s_lv_textarea_got_text = NULL;
+static char *s_lv_label_got_text = NULL;
 
 lv_display_t *lv_display_get_next(lv_display_t *disp)
 {
@@ -95,7 +97,7 @@ lv_observer_t * lv_subject_add_observer_obj(lv_subject_t * subject, lv_observer_
     argv[0] = (uint32_t)subject;
     argv[1] = (uint32_t)cb;
     argv[2] = (uint32_t)obj;
-    argv[2] = (uint32_t)user_data;
+    argv[3] = (uint32_t)user_data;
     LVGL_CALL_FUNC(LV_SUBJECT_ADD_OBSERVER_OBJ, argv);
 
     return (lv_observer_t *)argv[0];   
@@ -2489,7 +2491,7 @@ void lv_style_set_pad_right(lv_style_t * style, int32_t value)
     LVGL_CALL_FUNC(LV_STYLE_SET_PAD_RIGHT, argv);
 }
 
-void lv_style_set_grid_column_dsc_array(lv_style_t * style, const int32_t value[])
+void lv_style_set_grid_column_dsc_array(lv_style_t * style, const int32_t * value)
 {
     uint32_t argv[2];
 
@@ -2498,7 +2500,7 @@ void lv_style_set_grid_column_dsc_array(lv_style_t * style, const int32_t value[
     LVGL_CALL_FUNC(LV_STYLE_SET_GRID_COLUMN_DSC_ARRAY, argv);
 }
 
-void lv_style_set_grid_row_dsc_array(lv_style_t * style, const int32_t value[])
+void lv_style_set_grid_row_dsc_array(lv_style_t * style, const int32_t * value)
 {
     uint32_t argv[2];
 
@@ -3474,7 +3476,7 @@ void lv_scale_set_range(lv_obj_t * obj, int32_t min, int32_t max)
 
     argv[0] = (uint32_t)obj;
     argv[1] = (uint32_t)min;
-    argv[1] = (uint32_t)max;
+    argv[2] = (uint32_t)max;
     LVGL_CALL_FUNC(LV_SCALE_SET_RANGE, argv);
 }
 
@@ -3977,7 +3979,7 @@ void lv_obj_scroll_to_y(lv_obj_t * obj, int32_t y, lv_anim_enable_t anim_en)
 
     argv[0] = (uint32_t)obj;
     argv[1] = (uint32_t)y;
-    argv[1] = (uint32_t)anim_en;
+    argv[2] = (uint32_t)anim_en;
     LVGL_CALL_FUNC(LV_OBJ_SCROLL_TO_Y, argv);
 }
 
@@ -4043,6 +4045,15 @@ lv_color_t lv_color_hex(uint32_t c)
     ret.red = (c >> 16) & 0xff;
     ret.green = (c >> 8) & 0xff;
     ret.blue = (c >> 0) & 0xff;
+    return ret;
+}
+
+lv_color_t lv_color_make(uint8_t r, uint8_t g, uint8_t b)
+{
+    lv_color_t ret;
+    ret.red = r;
+    ret.green = g;
+    ret.blue = b;
     return ret;
 }
 
@@ -4138,6 +4149,16 @@ int32_t lv_area_get_width(const lv_area_t * area_p)
     return (int32_t)argv[0];
 }
 
+int32_t lv_area_get_height(const lv_area_t * area_p)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)area_p;
+    LVGL_CALL_FUNC(LV_AREA_GET_HEIGHT, argv);
+
+    return (int32_t)argv[0];
+}
+
 void lv_arc_set_angles(lv_obj_t * obj, lv_value_precise_t start, lv_value_precise_t end)
 {
     uint32_t argv[3];
@@ -4198,7 +4219,7 @@ int lv_obj_get_obs_data(lv_display_t *disp, int type, void *pdata, int n)
     argv[3] = (uint32_t)n;
     LVGL_CALL_FUNC(LV_OBJ_GET_OBS_DATA, argv);
 
-    return (int)argv[0];  
+    return (int)argv[0];
 }
 
 int lv_draw_task_get_data(lv_draw_task_t *disp, int type, void *pdata, int n)
@@ -4211,7 +4232,7 @@ int lv_draw_task_get_data(lv_draw_task_t *disp, int type, void *pdata, int n)
     argv[3] = (uint32_t)n;
     LVGL_CALL_FUNC(LV_DRAW_TASK_GET_DATA, argv);
 
-    return (int)argv[0];  
+    return (int)argv[0];
 }
 
 int lv_draw_fill_dsc_set_data(lv_draw_fill_dsc_t *dsc, int type, const void *pdata, int n)
@@ -4248,7 +4269,7 @@ int lv_draw_border_dsc_set_data(lv_draw_border_dsc_t *dsc, int type, const void 
     argv[1] = (uint32_t)type;
     argv[2] = (uint32_t)pdata;
     argv[3] = (uint32_t)n;
-    LVGL_CALL_FUNC(LV_DRAW_LABEL_DSC_SET_DATA, argv);
+    LVGL_CALL_FUNC(LV_DRAW_BORDER_DSC_SET_DATA, argv);
 
     return (int)argv[0];
 }
@@ -4270,7 +4291,7 @@ int32_t lv_trigo_cos(int16_t angle)
     argv[0] = (uint32_t)angle;
     LVGL_CALL_FUNC(LV_TRIGO_COS, argv);
 
-    return (int32_t)argv[0]; 
+    return (int32_t)argv[0];
 }
 
 #if LV_USE_PERF_MONITOR
@@ -4284,9 +4305,462 @@ int lv_get_sys_perf_data(const lv_sysmon_perf_info_t *info, int type, void *pdat
     argv[3] = (uint32_t)n;
     LVGL_CALL_FUNC(LV_GET_SYS_PERF_DATA, argv);
 
-    return (int)argv[0];  
+    return (int)argv[0];
 }
 #endif
+
+lv_obj_t * lv_buttonmatrix_create(lv_obj_t * parent)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)parent;
+    LVGL_CALL_FUNC(LV_BUTTONMATRIX_CREATE, argv);
+
+    return (lv_obj_t *)argv[0];
+}
+
+void lv_buttonmatrix_set_map(lv_obj_t * obj, const char * const map[])
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)map;
+    LVGL_CALL_FUNC(LV_BUTTONMATRIX_SET_MAP, argv);
+}
+
+void lv_buttonmatrix_set_button_width(lv_obj_t * obj, uint32_t btn_id, uint32_t width)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)btn_id;
+    argv[2] = (uint32_t)width;
+    LVGL_CALL_FUNC(LV_BUTTONMATRIX_SET_BUTTON_WIDTH, argv);
+}
+
+void lv_buttonmatrix_set_button_ctrl(lv_obj_t * obj, uint32_t btn_id, lv_buttonmatrix_ctrl_t ctrl)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)btn_id;
+    argv[2] = (uint32_t)ctrl;
+    LVGL_CALL_FUNC(LV_BUTTONMATRIX_SET_BUTTON_CTRL, argv);
+}
+
+uint32_t lv_buttonmatrix_get_selected_button(const lv_obj_t * obj)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)obj;
+    LVGL_CALL_FUNC(LV_BUTTONMATRIX_GET_SELECTED_BUTTON, argv);
+
+    return argv[0];
+}
+
+const char * lv_buttonmatrix_get_button_text(const lv_obj_t * obj, uint32_t btn_id)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)btn_id;
+    LVGL_CALL_FUNC(LV_BUTTONMATRIX_GET_BUTTON_TEXT, argv);
+
+    return (const char *)argv[0];
+}
+
+void lv_label_cut_text(lv_obj_t * obj, uint32_t pos, uint32_t cnt)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)pos;
+    argv[2] = (uint32_t)cnt;
+    LVGL_CALL_FUNC(LV_LABEL_CUT_TEXT, argv);
+}
+
+void lv_label_ins_text(lv_obj_t * obj, uint32_t pos, const char * txt)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)pos;
+    argv[2] = (uint32_t)txt;
+    LVGL_CALL_FUNC(LV_LABEL_INS_TEXT, argv);
+}
+
+char * lv_label_get_text2(const lv_obj_t * obj)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)obj;
+    LVGL_CALL_FUNC(LV_LABEL_GET_TEXT, argv);
+
+    return (char *)argv[0];
+}
+
+char * lv_textarea_get_text2(const lv_obj_t * obj)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)obj;
+    LVGL_CALL_FUNC(LV_TEXTAREA_GET_TEXT, argv);
+
+    return (char *)argv[0];
+}
+
+char * lv_label_get_text(const lv_obj_t * obj)
+{    
+    if (s_lv_label_got_text) {
+        free(s_lv_label_got_text);
+        s_lv_label_got_text = NULL;
+    }
+
+    char *text = lv_label_get_text2(obj);
+    if (text) {
+        s_lv_label_got_text = text;
+    }
+
+    return text;
+}
+
+const char * lv_textarea_get_text(const lv_obj_t * obj)
+{    
+    if (s_lv_textarea_got_text) {
+        free(s_lv_textarea_got_text);
+        s_lv_textarea_got_text = NULL;
+    }
+
+    char *text = lv_textarea_get_text2(obj);
+    if (text) {
+        s_lv_textarea_got_text = text;
+    }
+
+    return (const char *)text;
+}
+
+const void * lv_subject_get_pointer(lv_subject_t * subject)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)subject;
+    LVGL_CALL_FUNC(LV_SUBJECT_GET_POINTER, argv);
+
+    return (const void *)argv[0];  
+}
+
+void * lv_observer_get_target(lv_observer_t * observer)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)observer;
+    LVGL_CALL_FUNC(LV_OBSERVER_GET_TARGET, argv);
+
+    return (void *)argv[0];  
+}
+
+int32_t lv_obj_get_x(const lv_obj_t * obj)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)obj;
+    LVGL_CALL_FUNC(LV_OBJ_GET_X, argv);
+
+    return (int32_t)argv[0];
+}
+
+int32_t lv_obj_get_y(const lv_obj_t * obj)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)obj;
+    LVGL_CALL_FUNC(LV_OBJ_GET_Y, argv);
+
+    return (int32_t)argv[0];
+}
+
+void lv_obj_set_style_grid_column_dsc_array(lv_obj_t * obj, const int32_t * value, lv_style_selector_t selector)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)value;
+    argv[2] = (uint32_t)selector;
+    LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_GRID_COLUMN_DSC_ARRAY, argv);
+}
+
+void lv_obj_set_style_grid_row_dsc_array(lv_obj_t * obj, const int32_t * value, lv_style_selector_t selector)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)value;
+    argv[2] = (uint32_t)selector;
+    LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_GRID_ROW_DSC_ARRAY, argv);
+}
+
+void lv_obj_set_grid_align(lv_obj_t * obj, lv_grid_align_t column_align, lv_grid_align_t row_align)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)column_align;
+    argv[2] = (uint32_t)row_align;
+    LVGL_CALL_FUNC(LV_OBJ_SET_GRID_ALIGN, argv);
+}
+
+void lv_screen_load_anim(lv_obj_t * scr, lv_screen_load_anim_t anim_type, uint32_t time, uint32_t delay,
+                         bool auto_del)
+{
+    uint32_t argv[5];
+
+    argv[0] = (uint32_t)scr;
+    argv[1] = (uint32_t)anim_type;
+    argv[2] = (uint32_t)time;
+    argv[3] = (uint32_t)delay;
+    argv[4] = (uint32_t)auto_del;
+    LVGL_CALL_FUNC(LV_SCREEN_LOAD_ANIM, argv);
+}
+
+void lv_screen_load(lv_obj_t * scr)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)scr;
+    LVGL_CALL_FUNC(LV_SCREEN_LOAD, argv);
+}
+
+lv_theme_t * lv_theme_simple_init(lv_display_t * disp)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)disp;
+    LVGL_CALL_FUNC(LV_THEME_SIMPLE_INIT, argv);
+
+    return (lv_theme_t *)argv[0];
+}
+
+void lv_display_set_theme(lv_display_t * disp, lv_theme_t * th)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)disp;
+    argv[1] = (uint32_t)th;
+    LVGL_CALL_FUNC(LV_DISPLAY_SET_THEME, argv);
+}
+
+void lv_obj_set_align(lv_obj_t * obj, lv_align_t align)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)align;
+    LVGL_CALL_FUNC(LV_OBJ_SET_ALIGN, argv);
+}
+
+void lv_obj_set_style_text_opa(lv_obj_t * obj, lv_opa_t value, lv_style_selector_t selector)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)value;
+    argv[2] = (uint32_t)selector;
+    LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_TEXT_OPA, argv);
+}
+
+lv_result_t lv_obj_send_event(lv_obj_t * obj, lv_event_code_t event_code, void * param)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)event_code;
+    argv[2] = (uint32_t)param;
+    LVGL_CALL_FUNC(LV_OBJ_SEND_EVENT, argv);
+
+    return (lv_result_t)argv[0];
+}
+
+void lv_obj_set_style_bg_image_tiled(lv_obj_t * obj, bool value, lv_style_selector_t selector)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)value;
+    argv[2] = (uint32_t)selector;
+    LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_BG_IMAGE_TILED, argv);
+}
+
+void lv_obj_set_style_border_opa(lv_obj_t * obj, lv_opa_t value, lv_style_selector_t selector)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)value;
+    argv[2] = (uint32_t)selector;
+    LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_BORDER_OPA, argv);
+}
+
+void lv_obj_set_style_shadow_spread(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)value;
+    argv[2] = (uint32_t)selector;
+    LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_SHADOW_SPREAD, argv);
+}
+
+void lv_obj_set_style_image_recolor_opa(lv_obj_t * obj, lv_opa_t value, lv_style_selector_t selector)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)value;
+    argv[2] = (uint32_t)selector;
+    LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_IMAGE_RECOLOR_OPA, argv);
+}
+
+int32_t lv_obj_get_y_aligned(const lv_obj_t * obj)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)obj;
+    LVGL_CALL_FUNC(LV_OBJ_GET_Y_ALIGNED, argv);
+
+    return (int32_t)argv[0];
+}
+
+void * lv_malloc(size_t size)
+{
+    return malloc(size);
+}
+
+void lv_free(void * data)
+{
+    free(data);
+}
+
+void lv_anim_set_user_data(lv_anim_t * a, void * user_data)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)a;
+    argv[1] = (uint32_t)user_data;
+    LVGL_CALL_FUNC(LV_ANIM_SET_USER_DATA, argv);
+}
+
+void lv_anim_set_custom_exec_cb(lv_anim_t * a, lv_anim_custom_exec_cb_t exec_cb)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)a;
+    argv[1] = (uint32_t)exec_cb;
+    LVGL_CALL_FUNC(LV_ANIM_SET_CUSTOM_EXEC_CB, argv);
+}
+
+void lv_anim_set_deleted_cb(lv_anim_t * a, lv_anim_deleted_cb_t deleted_cb)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)a;
+    argv[1] = (uint32_t)deleted_cb;
+    LVGL_CALL_FUNC(LV_ANIM_SET_DELETED_CB, argv);
+}
+
+void lv_anim_set_reverse_delay(lv_anim_t * a, uint32_t delay)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)a;
+    argv[1] = (uint32_t)delay;
+    LVGL_CALL_FUNC(LV_ANIM_SET_REVERSE_DELAY, argv);
+}
+
+void lv_anim_set_repeat_delay(lv_anim_t * a, uint32_t delay)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)a;
+    argv[1] = (uint32_t)delay;
+    LVGL_CALL_FUNC(LV_ANIM_SET_REPEAT_DELAY, argv);
+}
+
+void lv_anim_set_early_apply(lv_anim_t * a, bool en)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)a;
+    argv[1] = (uint32_t)en;
+    LVGL_CALL_FUNC(LV_ANIM_SET_EARLY_APPLY, argv);
+}
+
+void lv_anim_set_get_value_cb(lv_anim_t * a, lv_anim_get_value_cb_t get_value_cb)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)a;
+    argv[1] = (uint32_t)get_value_cb;
+    LVGL_CALL_FUNC(LV_ANIM_SET_GET_VALUE_CB, argv);
+}
+
+int32_t lv_arc_get_value(const lv_obj_t * obj)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)obj;
+    LVGL_CALL_FUNC(LV_ARC_GET_VALUE, argv);
+
+    return (int32_t)argv[0];
+}
+
+void lv_obj_set_style_transform_scale_x(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)value;
+    argv[2] = (uint32_t)selector;
+    LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_TRANSFORM_SCALE_X, argv);
+}
+
+void lv_obj_set_style_transform_scale_y(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
+{
+    uint32_t argv[3];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)value;
+    argv[2] = (uint32_t)selector;
+    LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_TRANSFORM_SCALE_Y, argv);
+}
+
+lv_result_t lv_async_call(lv_async_cb_t async_xcb, void * user_data)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)async_xcb;
+    argv[1] = (uint32_t)user_data;
+    LVGL_CALL_FUNC(LV_ASYNC_CALL, argv);
+
+    return (lv_result_t)argv[0];
+}
+
+lv_subject_t *lv_obj_get_subject(void)
+{
+    uint32_t argv[1];
+
+    LVGL_CALL_FUNC(LV_OBJ_GET_SUBJECT, argv);
+
+    return (lv_subject_t *)argv[0];
+}
+
+void lv_obj_remove_from_subject(lv_obj_t * obj, lv_subject_t * subject)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)subject;
+    LVGL_CALL_FUNC(LV_OBJ_REMOVE_FROM_SUBJECT, argv);  
+}
 
 int lvgl_init(void)
 {

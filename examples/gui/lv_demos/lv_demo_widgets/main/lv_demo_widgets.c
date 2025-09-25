@@ -329,11 +329,6 @@ void lv_demo_widgets_close(void)
     /*Delete all animation*/
     lv_anim_delete(NULL, NULL);
 
-    if (meter2_timer) {
-        lv_timer_delete(meter2_timer);
-        meter2_timer = NULL;
-    }
-
     lv_obj_clean(lv_screen_active());
 
     lv_style_reset(&style_text_muted);

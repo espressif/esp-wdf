@@ -559,9 +559,14 @@ int32_t lv_anim_path_step(const lv_anim_t * a);
  */
 int32_t lv_anim_path_custom_bezier3(const lv_anim_t * a);
 
+#if LV_EXTERNAL_DATA_AND_DESTRUCTOR
+
+/**
+ * Get the currently running animation.
+ * @return      pointer to an animation that is currently being processed.
+ */
 lv_anim_t * lv_anim_get_running_anim(void);
 
-#if LV_EXTERNAL_DATA_AND_DESTRUCTOR
 /**
  * @brief Associates external user data with an animation instance
  * 

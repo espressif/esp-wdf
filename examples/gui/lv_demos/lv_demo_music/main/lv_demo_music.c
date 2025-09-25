@@ -7,6 +7,7 @@
  *      INCLUDES
  *********************/
 #include "lv_demo_music.h"
+#include "esp_lvgl.h"
 
 #if LV_USE_DEMO_MUSIC
 
@@ -23,17 +24,6 @@
 /**********************
  *      TYPEDEFS
  **********************/
-
-typedef struct {
-    uint32_t fps;
-    uint32_t cpu;
-    uint32_t refr_avg_time;
-    uint32_t render_avg_time;       /**< Pure rendering time without flush time*/
-    uint32_t flush_avg_time;        /**< Pure flushing time without rendering time*/
-    uint32_t cpu_avg_total;
-    uint32_t fps_avg_total;
-    uint32_t run_cnt;
-} calculated_t;
 
 /**********************
  *  STATIC PROTOTYPES
@@ -152,8 +142,8 @@ void lv_demo_music_close(void)
 #if LV_DEMO_MUSIC_AUTO_PLAY
     lv_timer_del(auto_step_timer);
 #endif
+
     lv_demo_music_list_close();
-    lv_demo_music_main_close();
 
     lv_obj_clean(lv_screen_active());
 

@@ -119,6 +119,8 @@ extern "C" {
 
 #define LV_TIMER_CTX_COUNT_VAL 0
 
+#define LV_FONT_UI_FONT_NUMBER 0
+
 /* ESP-Wasmachine LVGL version: 0.1.0 */
 #define WM_LV_VERSION_MAJOR 0
 #define WM_LV_VERSION_MINOR 1
@@ -131,6 +133,17 @@ typedef struct {
     lv_obj_t *scr;
     int count_val;
 } timer_context_t;
+
+typedef struct {
+    uint32_t fps;
+    uint32_t cpu;
+    uint32_t refr_avg_time;
+    uint32_t render_avg_time;       /**< Pure rendering time without flush time*/
+    uint32_t flush_avg_time;        /**< Pure flushing time without rendering time*/
+    uint32_t cpu_avg_total;
+    uint32_t fps_avg_total;
+    uint32_t run_cnt;
+} calculated_t;
 
 /**
   * @brief  Check whether the LVGL library is initialized.
@@ -252,9 +265,15 @@ int lv_draw_label_dsc_set_data(lv_draw_label_dsc_t *dsc, int type, const void *p
 
 int lv_draw_border_dsc_set_data(lv_draw_border_dsc_t *dsc, int type, const void *pdata, int n);
 
+int lv_obj_get_obs_data(lv_display_t *disp, int type, void *pdata, int n);
+
 #if LV_USE_PERF_MONITOR
-int lv_obj_get_sys_perf_data(lv_sysmon_perf_info_t *info, int type, void *pdata, int n);
+int lv_get_sys_perf_data(const lv_sysmon_perf_info_t *info, int type, void *pdata, int n);
 #endif
+
+char * lv_label_get_text2(const lv_obj_t * obj);
+char * lv_textarea_get_text2(const lv_obj_t * obj);
+
 
 /**
   * @brief  Get font pointer
@@ -324,6 +343,8 @@ int lv_timer_ctx_get_data(const timer_context_t *dsc, int type, void *pdata, int
   * @return 0 if success or a negative value if failed.
   */
 int lv_timer_ctx_set_data(timer_context_t *dsc, int type, const void *pdata, int n);
+
+lv_subject_t *lv_obj_get_subject(void);
 
 #ifdef __cplusplus
 }

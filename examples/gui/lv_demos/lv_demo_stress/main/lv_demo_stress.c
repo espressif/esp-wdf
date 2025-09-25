@@ -56,12 +56,11 @@ void lv_demo_stress(void)
 
 void lv_demo_stress_close(void)
 {
-    lv_timer_del(obj_test_timer);
+    if (obj_test_timer) lv_timer_delete(obj_test_timer);
     obj_test_timer = NULL;
-    if(msgbox_tmr) {
-        lv_timer_del(msgbox_tmr);
-        msgbox_tmr = NULL;
-    }
+
+    if(msgbox_tmr) lv_timer_delete(msgbox_tmr);    
+    msgbox_tmr = NULL;
 
     lv_obj_clean(lv_screen_active());
     lv_obj_clean(lv_layer_top());

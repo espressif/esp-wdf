@@ -320,12 +320,6 @@ lv_obj_t * lv_demo_music_main_create(lv_obj_t * parent)
     return main_cont;
 }
 
-void lv_demo_music_main_close(void)
-{
-    if(stop_start_anim_timer) lv_timer_del(stop_start_anim_timer);
-    lv_timer_del(sec_counter_timer);
-}
-
 void lv_demo_music_album_next(bool next)
 {
     uint32_t id = track_id;
@@ -1032,7 +1026,6 @@ static void stop_start_anim(lv_timer_t * t)
 {
     LV_UNUSED(t);
     start_anim = false;
-    stop_start_anim_timer = NULL;
     lv_obj_refresh_ext_draw_size(spectrum_obj);
 }
 

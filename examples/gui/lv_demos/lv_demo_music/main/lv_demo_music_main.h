@@ -33,7 +33,6 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 lv_obj_t * lv_demo_music_main_create(lv_obj_t * parent);
-void lv_demo_music_main_close(void);
 void lv_demo_music_play(uint32_t id);
 void lv_demo_music_resume(void);
 void lv_demo_music_pause(void);
