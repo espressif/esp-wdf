@@ -14,6 +14,7 @@ extern "C" {
  *      INCLUDES
  *********************/
 
+#include "../misc/lv_ext_data.h"
 #include "lv_obj.h"
 
 /*********************
@@ -53,6 +54,9 @@ struct _lv_obj_spec_attr_t {
 };
 
 struct _lv_obj_t {
+#if LV_USE_EXT_DATA
+    lv_ext_data_t ext_data;
+#endif
     const lv_obj_class_t * class_p;
     lv_obj_t * parent;
     lv_obj_spec_attr_t * spec_attr;
@@ -76,10 +80,6 @@ struct _lv_obj_t {
     uint16_t h_layout   : 1;
     uint16_t w_layout   : 1;
     uint16_t is_deleting : 1;
-#if LV_EXTERNAL_DATA_AND_DESTRUCTOR
-    void (* destructor)(void * ext_data);
-    void * ext_data[LV_EXT_DATA_MAX_NUM];
-#endif
 };
 
 

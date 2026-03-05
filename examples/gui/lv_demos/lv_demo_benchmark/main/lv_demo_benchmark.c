@@ -497,6 +497,8 @@ static uint32_t rnd_act;
 static lv_demo_benchmark_on_end_cb_t on_demo_end_cb;
 
 static lv_timer_t * next_scene_timer;
+static lv_timer_t * current_timer;
+
 static lv_obj_t * title;
 
 /**********************
@@ -543,18 +545,19 @@ void lv_demo_benchmark(void)
 
 void lv_demo_benchmark_close(void)
 {
-    if(next_scene_timer) lv_timer_delete(next_scene_timer);
-    next_scene_timer = NULL;
-
-    lv_anim_delete(NULL, NULL);
-
-    lv_obj_clean(lv_screen_active());
-
 #if LV_USE_PERF_MONITOR
     lv_subject_t *subject = lv_obj_get_subject();
     lv_subject_add_observer_obj(subject, NULL, title, NULL);
-    lv_obj_remove_from_subject(title, subject);
 #endif
+
+    if(next_scene_timer) lv_timer_del(next_scene_timer);
+    next_scene_timer = NULL;
+
+    if (current_timer) lv_timer_delete(current_timer);
+    current_timer = NULL;
+    lv_anim_delete(NULL, NULL);
+
+    lv_obj_clean(lv_screen_active());
 }
 
 void lv_demo_benchmark_set_end_cb(lv_demo_benchmark_on_end_cb_t cb)
@@ -680,6 +683,8 @@ static void load_scene(uint32_t scene)
 static void next_scene_timer_cb(lv_timer_t * timer)
 {
     LV_UNUSED(timer);
+    next_scene_timer = NULL;
+    current_timer = timer;
 
     scene_act++;
 
@@ -688,6 +693,7 @@ static void next_scene_timer_cb(lv_timer_t * timer)
         lv_demo_benchmark_summary_t summary;
 
         lv_timer_delete(timer);
+        current_timer = NULL;
         summary_create(&summary);
         /*
          * Don't display the summary if the user sets a callback function
@@ -700,7 +706,6 @@ static void next_scene_timer_cb(lv_timer_t * timer)
             lv_demo_benchmark_summary_display(&summary);
         }
 
-        next_scene_timer = NULL;
     }
     else {
         lv_timer_set_period(timer, scenes[scene_act].scene_time);

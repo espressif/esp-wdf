@@ -25,6 +25,8 @@
 #define LVGL_CALL_FUNC(id, argv) esp_lvgl_call_native_func(id, \
                                                            sizeof(argv) / sizeof(argv[0]), \
                                                            argv)
+#define ESP_BROOKESIA_SELECTOR_TRANS_VALUE             0xFFFFFFFF
+
 static bool is_lvgl_init = false;
 static char *s_lv_textarea_got_text = NULL;
 static char *s_lv_label_got_text = NULL;
@@ -1622,13 +1624,28 @@ void lv_obj_set_style_shadow_width(lv_obj_t * obj, int32_t value, lv_style_selec
     LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_SHADOW_WIDTH, argv);
 }
 
+#if CONFIG_ESP_BROOKESIA_GUI_ENABLE_SQUARELINE
+uint32_t lv_brookesia_selector_trans(lv_style_selector_t selector)
+{
+    if (!selector) {
+        selector = ESP_BROOKESIA_SELECTOR_TRANS_VALUE;
+    }
+
+    return selector;
+}
+#endif
+
 void lv_obj_set_style_bg_image_src(lv_obj_t * obj, const void * value, lv_style_selector_t selector)
 {
     uint32_t argv[3];
 
     argv[0] = (uint32_t)obj;
     argv[1] = (uint32_t)value;
+#if CONFIG_ESP_BROOKESIA_GUI_ENABLE_SQUARELINE
+    argv[2] = lv_brookesia_selector_trans(selector);
+#else
     argv[2] = (uint32_t)selector;
+#endif
     LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_BG_IMG_SRC, argv);
 }
 
@@ -4753,13 +4770,67 @@ lv_subject_t *lv_obj_get_subject(void)
     return (lv_subject_t *)argv[0];
 }
 
-void lv_obj_remove_from_subject(lv_obj_t * obj, lv_subject_t * subject)
+
+void lv_obj_refr_pos(lv_obj_t * obj)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)obj;
+    LVGL_CALL_FUNC(LV_OBJ_REFR_POS, argv); 
+}
+
+void lv_image_set_offset_x(lv_obj_t * obj, int32_t x)
 {
     uint32_t argv[2];
 
     argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)subject;
-    LVGL_CALL_FUNC(LV_OBJ_REMOVE_FROM_SUBJECT, argv);  
+    argv[1] = (uint32_t)x;
+    LVGL_CALL_FUNC(LV_IMAGE_SET_OFFSET_X, argv);
+}
+
+void lv_anim_delete_all(void)
+{
+    uint32_t argv[1];
+
+    LVGL_CALL_FUNC(LV_ANIM_DELETE_ALL, argv);
+}
+
+void lv_obj_set_parent(lv_obj_t * obj, lv_obj_t * parent)
+{
+    uint32_t argv[2];
+
+    argv[0] = (uint32_t)obj;
+    argv[1] = (uint32_t)parent;
+    LVGL_CALL_FUNC(LV_OBJ_SET_PARENT, argv); 
+}
+
+uint32_t lv_tick_get(void)
+{
+    uint32_t argv[1];
+
+    LVGL_CALL_FUNC(LV_TICK_GET, argv);
+
+    return argv[0];
+}
+
+uint32_t lv_tick_elaps(uint32_t prev_tick)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)prev_tick;
+    LVGL_CALL_FUNC(LV_TICK_ELAPS, argv);
+
+    return argv[0];
+}
+
+void * lv_anim_get_user_data(const lv_anim_t * a)
+{
+    uint32_t argv[1];
+
+    argv[0] = (uint32_t)a;
+    LVGL_CALL_FUNC(LV_ANIM_GET_USER_DATA, argv);
+
+    return (void *)argv[0];
 }
 
 int lvgl_init(void)

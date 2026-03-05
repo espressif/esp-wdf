@@ -468,6 +468,13 @@
 #define LV_ASYNC_CALL                   451
 #define LV_OBJ_GET_SUBJECT              452
 #define LV_OBJ_REMOVE_FROM_SUBJECT      453
+#define LV_OBJ_REFR_POS                 454
+#define LV_IMAGE_SET_OFFSET_X           455
+#define LV_ANIM_DELETE_ALL              456
+#define LV_OBJ_SET_PARENT               457
+#define LV_TICK_GET                     458
+#define LV_TICK_ELAPS                   459
+#define LV_ANIM_GET_USER_DATA           460
 
 /**
   * @brief  Call LVGL functions in runtime level.

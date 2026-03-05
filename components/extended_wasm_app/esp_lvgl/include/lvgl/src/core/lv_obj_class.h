@@ -61,26 +61,21 @@ bool lv_obj_is_editable(lv_obj_t * obj);
 
 bool lv_obj_is_group_def(lv_obj_t * obj);
 
-#if LV_EXTERNAL_DATA_AND_DESTRUCTOR
+#if LV_USE_EXT_DATA
 /**
- * @brief Associates an array of external data pointers with an LVGL object
- * 
- * Attaches multiple user-defined data pointers to an LVGL object along with an optional
- * destructor callback that will be called when the object is deleted. The function:
- * - Safely handles NULL checks for object and input array
- * - Respects LV_EXT_DATA_MAX_NUM limit
- * - Avoids duplicate entries
- * - Preserves existing non-NULL data slots
+ * @brief Associates external data with an LVGL object
  *
- * @param obj Target LVGL object (if NULL, function returns early)
- * @param ext_data Array of data pointers to associate (elements can be NULL)
- * @param ext_data_num Number of elements in ext_data array
- * @param destructor Cleanup function called for each non-NULL data pointer during
- *                   object deletion. Receives single data pointer as parameter.
- *                   NULL means no automatic cleanup.
+ * Associates custom user data with an LVGL object and specifies a destructor function
+ * that will be automatically invoked when the object is deleted to properly clean up
+ * the associated resources.
+ *
+ * @param obj          Target LVGL object
+ * @param data         User-defined data pointer to associate with a object
+ * @param free_cb      Cleanup function called for each non-NULL data pointer during
+ *                     object deletion. Receives single data pointer as parameter.
+ *                     NULL means no automatic cleanup.
  */
-void lv_obj_set_external_data(lv_obj_t *obj, void *ext_data[], int ext_data_num,
-                              void (* destructor)(void * ext_data));
+void lv_obj_set_external_data(lv_obj_t * obj, void * data, void (* free_cb)(void * data));
 #endif
 
 /**********************

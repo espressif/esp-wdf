@@ -122,8 +122,8 @@ extern "C" {
 #define LV_FONT_UI_FONT_NUMBER 0
 
 /* ESP-Wasmachine LVGL version: 0.1.0 */
-#define WM_LV_VERSION_MAJOR 0
-#define WM_LV_VERSION_MINOR 1
+#define WM_LV_VERSION_MAJOR 1
+#define WM_LV_VERSION_MINOR 0
 #define WM_LV_VERSION_PATCH 0
 
 #define lv_snprintf  snprintf

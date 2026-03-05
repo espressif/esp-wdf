@@ -13,6 +13,7 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
+#include "../misc/lv_ext_data.h"
 #include "lv_indev.h"
 #include "../misc/lv_anim.h"
 #include "lv_indev_scroll.h"
@@ -27,6 +28,9 @@ extern "C" {
  **********************/
 
 struct _lv_indev_t {
+#if LV_USE_EXT_DATA
+    lv_ext_data_t ext_data;
+#endif
     /** Input device type*/
     lv_indev_type_t type;
 

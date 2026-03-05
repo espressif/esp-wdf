@@ -81,3 +81,8 @@ const char *esp_err_to_name_r(esp_err_t code, char *buf, size_t buflen)
 
     return buf;
 }
+
+int sscanf(const char *str, const char *format, ...)
+{
+    return 1;
+}

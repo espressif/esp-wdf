@@ -47,6 +47,11 @@ idf_component_register(SRCS ${srcs}
                        PRIV_INCLUDE_DIRS ${priv_include_dir}
                        REQUIRES "wamr" "esp_common" "esp_event")
 
+# Enable LV_USE_EXT_DATA by default for WASM target
+if(CONFIG_WDF_EXT_WASM_APP_LVGL)
+    target_compile_definitions(${COMPONENT_LIB} PUBLIC "-DLV_USE_EXT_DATA")
+endif()
+
 if(CONFIG_WDF_EXT_WASM_APP_MQTT)
     target_link_libraries(${COMPONENT_LIB} INTERFACE "-Wl,--export=on_mqtt_dispatch_event")
 endif()
