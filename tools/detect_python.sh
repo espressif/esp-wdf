@@ -12,8 +12,11 @@ ESP_PYTHON=python
 for p_cmd in python python3
 do
     echo "Checking \"$p_cmd\" ..."
-
-    if [ "$($p_cmd -c "import sys; print(sys.version_info.major)")" = 3 ]; then
+    # Check existence first to avoid "command not found" when only python3 exists
+    if ! command -v "$p_cmd" >/dev/null 2>&1; then
+        continue
+    fi
+    if [ "$($p_cmd -c "import sys; print(sys.version_info.major)" 2>/dev/null)" = 3 ]; then
         ESP_PYTHON=$p_cmd
         break
     fi
