@@ -90,7 +90,8 @@ function(__build_set_default_build_specifications)
     unset(c_compile_options)
     unset(cxx_compile_options)
 
-    list(APPEND compile_definitions "")
+    list(APPEND compile_definitions ""
+                                    "-D__WAMR_PLATFORM__")
 
     list(APPEND compile_options     "-Wno-unused-command-line-argument")
 
