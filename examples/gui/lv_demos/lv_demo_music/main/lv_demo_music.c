@@ -140,7 +140,7 @@ void lv_demo_music_close(void)
     lv_anim_delete(NULL, NULL);
 
 #if LV_DEMO_MUSIC_AUTO_PLAY
-    lv_timer_del(auto_step_timer);
+    lv_timer_delete(auto_step_timer);
 #endif
 
     lv_demo_music_list_close();
@@ -148,6 +148,7 @@ void lv_demo_music_close(void)
     lv_obj_clean(lv_screen_active());
 
     lv_obj_set_style_bg_color(lv_screen_active(), original_screen_bg_color, 0);
+    lv_release_variable();
 }
 
 const char * lv_demo_music_get_title(uint32_t track_id)

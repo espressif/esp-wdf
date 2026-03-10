@@ -84,5 +84,10 @@ const char *esp_err_to_name_r(esp_err_t code, char *buf, size_t buflen)
 
 int sscanf(const char *str, const char *format, ...)
 {
+    /**
+     * WASM runtime does not provide sscanf implementation.
+     * Return 1 to indicate successful parsing of at least one argument.
+     * This is a stub for LVGL configuration parsing compatibility.
+     */
     return 1;
 }

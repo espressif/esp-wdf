@@ -335,6 +335,7 @@ void lv_demo_widgets_close(void)
     lv_style_reset(&style_title);
     lv_style_reset(&style_icon);
     lv_style_reset(&style_bullet);
+    lv_release_variable();
 }
 
 void lv_demo_widgets_start_slideshow(void)

@@ -344,7 +344,17 @@ int lv_timer_ctx_get_data(const timer_context_t *dsc, int type, void *pdata, int
   */
 int lv_timer_ctx_set_data(timer_context_t *dsc, int type, const void *pdata, int n);
 
+/**
+  * @brief  Get subject of lv_obj_t.
+  *
+  * @return subject of lv_obj_t.
+  */
 lv_subject_t *lv_obj_get_subject(void);
+
+/**
+  * @brief  Release variables used in lv_label_get_text and lv_textarea_get_text.
+  */
+void lv_release_variable();
 
 #ifdef __cplusplus
 }

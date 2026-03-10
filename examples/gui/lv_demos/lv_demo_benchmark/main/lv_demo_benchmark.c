@@ -550,7 +550,7 @@ void lv_demo_benchmark_close(void)
     lv_subject_add_observer_obj(subject, NULL, title, NULL);
 #endif
 
-    if(next_scene_timer) lv_timer_del(next_scene_timer);
+    if(next_scene_timer) lv_timer_delete(next_scene_timer);
     next_scene_timer = NULL;
 
     if (current_timer) lv_timer_delete(current_timer);
@@ -558,6 +558,7 @@ void lv_demo_benchmark_close(void)
     lv_anim_delete(NULL, NULL);
 
     lv_obj_clean(lv_screen_active());
+    lv_release_variable();
 }
 
 void lv_demo_benchmark_set_end_cb(lv_demo_benchmark_on_end_cb_t cb)

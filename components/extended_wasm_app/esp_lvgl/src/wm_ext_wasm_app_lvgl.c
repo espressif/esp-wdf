@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "esp_lvgl.h"
@@ -25,7 +26,11 @@
 #define LVGL_CALL_FUNC(id, argv) esp_lvgl_call_native_func(id, \
                                                            sizeof(argv) / sizeof(argv[0]), \
                                                            argv)
+#ifndef ESP_BROOKESIA_SELECTOR_TRANS_VALUE
 #define ESP_BROOKESIA_SELECTOR_TRANS_VALUE             0xFFFFFFFF
+#endif
+
+#define LV_MAX_BUFFER_SIZE 4096 /**< Maximum buffer size for string operations */
 
 static bool is_lvgl_init = false;
 static char *s_lv_textarea_got_text = NULL;
@@ -79,17 +84,6 @@ int32_t lv_display_get_vertical_resolution(const lv_display_t * disp)
 
     return (int32_t)argv[0];
 }
-
-#if 0
-void lv_disp_set_monitor_cb(lv_display_t *disp, void *cb)
-{
-    uint32_t argv[2];
-
-    argv[0] = (uint32_t)disp;
-    argv[1] = (uint32_t)cb;
-    LVGL_CALL_FUNC(LV_DISP_SET_MONITOR_CB, argv);
-}
-#endif
 
 lv_observer_t * lv_subject_add_observer_obj(lv_subject_t * subject, lv_observer_cb_t cb, lv_obj_t * obj,
                                             void * user_data)
@@ -362,26 +356,32 @@ void lv_label_set_text(lv_obj_t *obj, const char *txt)
 void lv_label_set_text_fmt(lv_obj_t *obj, const char *fmt, ...)
 {
     va_list va_arg;
-    char *buffer;
+    char *buffer = NULL;
     int n = 128;
+    int ret;
 
     va_start(va_arg, fmt);
 
-    while (1) {
-        buffer = malloc(n);
-        if (!buffer) {
-            break;
-        }
-
-        int ret = vsnprintf(buffer, n, fmt, va_arg);
-        if (ret <= 0) {
+    do {
+        char *new_buf = realloc(buffer, n);
+        if (!new_buf) {
             free(buffer);
-        } else {
             break;
         }
+        buffer = new_buf;
 
-        n *= 2;
-    };
+        ret = vsnprintf(buffer, n, fmt, va_arg);
+        if (ret > 0 && ret < n) {
+            break;
+        }
+        if (ret >= n) {
+            n = ret + 1;
+        } else {
+            free(buffer);
+            buffer = NULL;
+            break;
+        }
+    } while (n < LV_MAX_BUFFER_SIZE);
 
     va_end(va_arg);
 
@@ -445,26 +445,32 @@ void lv_table_set_cell_value(lv_obj_t *obj, uint32_t row, uint32_t col, const ch
 void lv_table_set_cell_value_fmt(lv_obj_t * obj, uint32_t row, uint32_t col, const char * fmt, ...)
 {
     va_list va_arg;
-    char *buffer;
+    char *buffer = NULL;
     int n = 128;
+    int ret;
 
     va_start(va_arg, fmt);
 
-    while (1) {
-        buffer = malloc(n);
-        if (!buffer) {
-            break;
-        }
-
-        int ret = vsnprintf(buffer, n, fmt, va_arg);
-        if (ret <= 0) {
+    do {
+        char *new_buf = realloc(buffer, n);
+        if (!new_buf) {
             free(buffer);
-        } else {
             break;
         }
+        buffer = new_buf;
 
-        n *= 2;
-    };
+        ret = vsnprintf(buffer, n, fmt, va_arg);
+        if (ret > 0 && ret < n) {
+            break;
+        }
+        if (ret >= n) {
+            n = ret + 1;
+        } else {
+            free(buffer);
+            buffer = NULL;
+            break;
+        }
+    } while (n < LV_MAX_BUFFER_SIZE);
 
     va_end(va_arg);
 
@@ -1202,24 +1208,6 @@ void lv_group_add_obj(lv_group_t * group, lv_obj_t * obj)
     LVGL_CALL_FUNC(LV_GROUP_ADD_OBJ, argv); 
 }
 
-#if 0
-void lv_chart_set_axis_tick(lv_obj_t * obj, lv_chart_axis_t axis, int32_t major_len, int32_t minor_len,
-                            int32_t major_cnt, int32_t minor_cnt, bool label_en, int32_t draw_size)
-{
-    uint32_t argv[8];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)axis;
-    argv[2] = (uint32_t)major_len;
-    argv[3] = (uint32_t)minor_len;
-    argv[4] = (uint32_t)major_cnt;
-    argv[5] = (uint32_t)minor_cnt;
-    argv[6] = (uint32_t)label_en;
-    argv[7] = (uint32_t)draw_size;
-    LVGL_CALL_FUNC(LV_CHART_SET_AXIS_TICK, argv);     
-}
-#endif
-
 void lv_chart_set_div_line_count(lv_obj_t * obj, uint8_t hdiv, uint8_t vdiv)
 {
     uint32_t argv[3];
@@ -1238,17 +1226,6 @@ void lv_chart_set_point_count(lv_obj_t * obj, uint32_t cnt)
     argv[1] = (uint32_t)cnt;
     LVGL_CALL_FUNC(LV_CHART_SET_POINT_COUNT, argv); 
 }
-
-#if 0
-void lv_chart_set_zoom_x(lv_obj_t * obj, uint16_t zoom_x)
-{
-    uint32_t argv[2];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)zoom_x;
-    LVGL_CALL_FUNC(LV_CHART_SET_ZOOM_X, argv); 
-}
-#endif
 
 void lv_obj_set_style_border_side(lv_obj_t * obj, lv_border_side_t value, lv_style_selector_t selector)
 {
@@ -1359,80 +1336,6 @@ lv_obj_t * lv_obj_get_parent(const lv_obj_t *obj)
     return (lv_obj_t *)argv[0];
 }
 
-#if 0
-lv_meter_scale_t * lv_meter_add_scale(lv_obj_t * obj)
-{
-    uint32_t argv[1];
-
-    argv[0] = (uint32_t)obj;
-    LVGL_CALL_FUNC(LV_METER_ADD_SCALE, argv);
-
-    return (lv_meter_scale_t *)argv[0];
-}
-
-void lv_meter_set_scale_range(lv_obj_t * obj, lv_meter_scale_t * scale, int32_t min, int32_t max, uint32_t angle_range,
-                              uint32_t rotation)
-{
-    uint32_t argv[6];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)scale;
-    argv[2] = (uint32_t)min;
-    argv[3] = (uint32_t)max;
-    argv[4] = (uint32_t)angle_range;
-    argv[5] = (uint32_t)rotation;
-    LVGL_CALL_FUNC(LV_METER_SET_SCALE_RANGE, argv);
-}
-
-void lv_meter_set_scale_ticks(lv_obj_t * obj, lv_meter_scale_t * scale, uint16_t cnt, uint16_t width, uint16_t len,
-                              lv_color_t color)
-{
-    uint32_t argv[6];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)scale;
-    argv[2] = (uint32_t)cnt;
-    argv[3] = (uint32_t)width;
-    argv[4] = (uint32_t)len;
-    argv[5] = (uint32_t)color.full;
-    LVGL_CALL_FUNC(LV_METER_SET_SCALE_TICKS, argv);
-}
-
-lv_meter_indicator_t * lv_meter_add_arc(lv_obj_t * obj, lv_meter_scale_t * scale, uint16_t width, lv_color_t color,
-                                        int16_t r_mod)
-{
-    uint32_t argv[5];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)scale;
-    argv[2] = (uint32_t)width;
-    argv[3] = (uint32_t)color.full;
-    argv[4] = (uint32_t)r_mod;
-    LVGL_CALL_FUNC(LV_METER_ADD_ARC, argv);
-
-    return (lv_meter_indicator_t *)argv[0];
-}
-
-void lv_meter_set_indicator_start_value(lv_obj_t * obj, lv_meter_indicator_t * indic, int32_t value)
-{
-    uint32_t argv[3];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)indic;
-    argv[2] = (uint32_t)value;
-    LVGL_CALL_FUNC(LV_METER_SET_INDICATOR_START_VALUE, argv);
-}
-
-void lv_meter_set_indicator_end_value(lv_obj_t * obj, lv_meter_indicator_t * indic, int32_t value)
-{
-    uint32_t argv[3];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)indic;
-    argv[2] = (uint32_t)value;
-    LVGL_CALL_FUNC(LV_METER_SET_INDICATOR_END_VALUE, argv);
-}
-#endif
 
 void lv_obj_set_style_pad_right(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
 {
@@ -1501,38 +1404,6 @@ void lv_obj_set_style_outline_width(lv_obj_t * obj, int32_t value, lv_style_sele
     LVGL_CALL_FUNC(LV_OBJ_SET_STYLE_OUTLINE_WIDTH, argv);
 }
 
-#if 0
-void lv_meter_set_scale_major_ticks(lv_obj_t * obj, lv_meter_scale_t * scale, uint16_t nth, uint16_t width,
-                                    uint16_t len, lv_color_t color, int16_t label_gap)
-{
-    uint32_t argv[7];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)scale;
-    argv[2] = (uint32_t)nth;
-    argv[3] = (uint32_t)width;
-    argv[4] = (uint32_t)len;
-    argv[5] = (uint32_t)color.full;
-    argv[6] = (uint32_t)label_gap;
-    LVGL_CALL_FUNC(LV_METER_SET_SCALE_MAJOR_TICKS, argv);
-}
-
-lv_meter_indicator_t * lv_meter_add_scale_lines(lv_obj_t * obj, lv_meter_scale_t * scale, lv_color_t color_start,
-                                                lv_color_t color_end, bool local, int16_t width_mod)
-{
-    uint32_t argv[6];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)scale;
-    argv[2] = (uint32_t)color_start.full;
-    argv[3] = (uint32_t)color_end.full;
-    argv[4] = (uint32_t)local;
-    argv[5] = (uint32_t)width_mod;
-    LVGL_CALL_FUNC(LV_METER_ADD_SCALE_LINES, argv);
-
-    return (lv_meter_indicator_t *)argv[0];
-}
-#endif
 
 void lv_obj_set_style_pad_bottom(lv_obj_t * obj, int32_t value, lv_style_selector_t selector)
 {
@@ -1914,47 +1785,6 @@ lv_chart_type_t lv_chart_get_type(const lv_obj_t * obj)
     return (lv_chart_type_t)argv[0];
 }
 
-#if 0
-void lv_draw_mask_line_points_init(lv_draw_mask_line_param_t * param, int32_t p1x, int32_t p1y, int32_t p2x,
-                                   int32_t p2y, lv_draw_mask_line_side_t side)
-{
-    uint32_t argv[6];
-
-    argv[0] = (uint32_t)param;
-    argv[1] = (uint32_t)p1x;
-    argv[2] = (uint32_t)p1y;
-    argv[3] = (uint32_t)p2x;
-    argv[4] = (uint32_t)p2y;
-    argv[5] = (uint32_t)side;
-    LVGL_CALL_FUNC(LV_DRAW_MASK_LINE_POINTS_INIT, argv);
-}
-
-int16_t lv_draw_mask_add(void * param, void * custom_id)
-{
-    uint32_t argv[2];
-
-    argv[0] = (uint32_t)param;
-    argv[1] = (uint32_t)custom_id;
-    LVGL_CALL_FUNC(LV_DRAW_MASK_ADD, argv);
-
-    return (int16_t)argv[0];
-}
-
-void lv_draw_mask_fade_init(lv_draw_mask_fade_param_t * param, const lv_area_t * coords, lv_opa_t opa_top,
-                            int32_t y_top,
-                            lv_opa_t opa_bottom, int32_t y_bottom)
-{
-    uint32_t argv[6];
-
-    argv[0] = (uint32_t)param;
-    argv[1] = (uint32_t)coords;
-    argv[2] = (uint32_t)opa_top;
-    argv[3] = (uint32_t)y_top;
-    argv[4] = (uint32_t)opa_bottom;
-    argv[5] = (uint32_t)y_bottom;
-    LVGL_CALL_FUNC(LV_DRAW_MASK_FADE_INIT, argv);
-}
-#endif
 
 bool lv_area_intersect(lv_area_t * res_p, const lv_area_t * a1_p, const lv_area_t * a2_p)
 {
@@ -1968,17 +1798,6 @@ bool lv_area_intersect(lv_area_t * res_p, const lv_area_t * a1_p, const lv_area_
     return (bool)argv[0];
 }
 
-#if 0
-void * lv_draw_mask_remove_id(int16_t id)
-{
-    uint32_t argv[1];
-
-    argv[0] = (uint32_t)id;
-    LVGL_CALL_FUNC(LV_DRAW_MASK_REMOVE_ID, argv);
-
-    return (void *)argv[0];
-}
-#endif
 
 uint32_t lv_chart_get_pressed_point(const lv_obj_t * obj)
 {
@@ -2001,17 +1820,6 @@ lv_chart_series_t * lv_chart_get_series_next(const lv_obj_t * chart, const lv_ch
     return (lv_chart_series_t *)argv[0];
 }
 
-#if 0
-lv_obj_t * lv_meter_create(lv_obj_t * parent)
-{
-    uint32_t argv[1];
-
-    argv[0] = (uint32_t)parent;
-    LVGL_CALL_FUNC(LV_METER_CREATE, argv);
-
-    return (lv_obj_t *)argv[0];
-}
-#endif
 
 lv_obj_t * lv_obj_get_child(const lv_obj_t * obj, int32_t id)
 {
@@ -2024,17 +1832,6 @@ lv_obj_t * lv_obj_get_child(const lv_obj_t * obj, int32_t id)
     return (lv_obj_t *)argv[0];
 }
 
-#if 0
-void lv_meter_set_indicator_value(lv_obj_t * obj, lv_meter_indicator_t * indic, int32_t value)
-{
-    uint32_t argv[3];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)indic;
-    argv[2] = (uint32_t)value;
-    LVGL_CALL_FUNC(LV_METER_SET_INDICATOR_VALUE, argv);
-}
-#endif
 
 void lv_chart_set_series_color(lv_obj_t * chart, lv_chart_series_t * series, lv_color_t color)
 {
@@ -2070,22 +1867,6 @@ uint32_t lv_obj_get_child_count(const lv_obj_t * obj)
     return argv[0];
 }
 
-#if 0
-lv_meter_indicator_t * lv_meter_add_needle_line(lv_obj_t * obj, lv_meter_scale_t * scale, uint16_t width,
-                                                lv_color_t color, int16_t r_mod)
-{
-    uint32_t argv[5];
-
-    argv[0] = (uint32_t)obj;
-    argv[1] = (uint32_t)scale;
-    argv[2] = (uint32_t)width;
-    argv[3] = (uint32_t)color.full;
-    argv[4] = (uint32_t)r_mod;
-    LVGL_CALL_FUNC(LV_METER_ADD_NEEDLE_LINE, argv);
-
-    return (lv_meter_indicator_t *)argv[0];
-}
-#endif
 
 lv_result_t lv_mem_test(void)
 {
@@ -2105,18 +1886,6 @@ void lv_mem_monitor(lv_mem_monitor_t * mon_p)
     LVGL_CALL_FUNC(LV_MEM_MONITOR, argv);
 }
 
-#if 0
-lv_obj_t * lv_colorwheel_create(lv_obj_t * parent, bool knob_recolor)
-{
-    uint32_t argv[2];
-
-    argv[0] = (uint32_t)parent;
-    argv[1] = (uint32_t)knob_recolor;
-    LVGL_CALL_FUNC(LV_COLORWHEEL_CREATE, argv);
-
-    return (lv_obj_t *)argv[0];
-}
-#endif
 
 void lv_tabview_set_active(lv_obj_t * obj, uint32_t id, lv_anim_enable_t anim_en)
 {
@@ -2128,15 +1897,6 @@ void lv_tabview_set_active(lv_obj_t * obj, uint32_t id, lv_anim_enable_t anim_en
     LVGL_CALL_FUNC(LV_TABVIEW_SET_ACT, argv);
 }
 
-#if 0
-void lv_obj_del_anim_ready_cb(lv_anim_t * a)
-{
-    uint32_t argv[1];
-
-    argv[0] = (uint32_t)a;
-    LVGL_CALL_FUNC(LV_OBJ_DEL_ANIM_READY_CB, argv);
-}
-#endif
 
 void lv_obj_delete_async(lv_obj_t * obj)
 {
@@ -2463,15 +2223,6 @@ void lv_obj_scroll_by(lv_obj_t * obj, int32_t x, int32_t y, lv_anim_enable_t ani
     LVGL_CALL_FUNC(LV_OBJ_SCROLL_BY, argv);
 }
 
-#if 0
-void lv_textarea_del_char_forward(lv_obj_t * obj)
-{
-    uint32_t argv[1];
-
-    argv[0] = (uint32_t)obj;
-    LVGL_CALL_FUNC(LV_TEXTAREA_DEL_CHAR_FORWARD, argv);
-}
-#endif
 
 void lv_msgbox_close(lv_obj_t * mbox)
 {
@@ -2794,19 +2545,6 @@ int32_t lv_trigo_sin(int16_t angle)
     return (int32_t)argv[0]; 
 }
 
-#if 0
-void lv_draw_polygon(struct _lv_layer_t * draw_ctx, const lv_draw_rect_dsc_t * draw_dsc,
-                     const lv_point_precise_t points[], uint16_t point_cnt)
-{
-    uint32_t argv[4];
-
-    argv[0] = (uint32_tlv_indev_get_gesture_dir)draw_ctx;
-    argv[1] = (uint32_t)draw_dsc;
-    argv[2] = (uint32_t)points;
-    argv[3] = (uint32_t)point_cnt;
-    LVGL_CALL_FUNC(LV_DRAW_POLYGON, argv);
-}
-#endif
 
 lv_dir_t lv_indev_get_gesture_dir(const lv_indev_t * indev)
 {
@@ -2877,20 +2615,6 @@ int lv_draw_rect_dsc_set_data(lv_draw_rect_dsc_t *dsc, int type, const void *pda
     return (int)argv[0];
 }
 
-#if 0
-int lv_chart_series_get_data(const lv_chart_series_t * ser, int type, void *pdata, int n)
-{
-    uint32_t argv[4];
-
-    argv[0] = (uint32_t)ser;
-    argv[1] = (uint32_t)type;
-    argv[2] = (uint32_t)pdata;
-    argv[3] = (uint32_t)n;
-    LVGL_CALL_FUNC(LV_CHART_SERIES_GET_DATA, argv);
-
-    return (int)argv[0];
-}
-#endif
 
 const lv_font_t *lv_font_get_font(int type)
 {
@@ -3261,19 +2985,6 @@ lv_timer_t * lv_anim_get_timer(void)
     return (lv_timer_t *)argv[0];
 }
 
-#if 0
-int lv_disp_get_data(lv_display_t *disp, void *pdata, int n)
-{
-    uint32_t argv[3];
-
-    argv[0] = (uint32_t)disp;
-    argv[1] = (uint32_t)pdata;
-    argv[2] = (uint32_t)n;
-    LVGL_CALL_FUNC(LV_DISP_GET_DATA, argv);
-
-    return (int)argv[0];
-}
-#endif
 
 int lv_anim_timer_get_data(lv_timer_t *anim_timer, void *pdata, int n)
 {
@@ -4831,6 +4542,19 @@ void * lv_anim_get_user_data(const lv_anim_t * a)
     LVGL_CALL_FUNC(LV_ANIM_GET_USER_DATA, argv);
 
     return (void *)argv[0];
+}
+
+void lv_release_variable()
+{
+    if (s_lv_label_got_text) {
+        free(s_lv_label_got_text);
+        s_lv_label_got_text = NULL;
+    }
+
+    if (s_lv_textarea_got_text) {
+        free(s_lv_textarea_got_text);
+        s_lv_textarea_got_text = NULL;
+    }
 }
 
 int lvgl_init(void)

@@ -64,6 +64,7 @@ void lv_demo_stress_close(void)
 
     lv_obj_clean(lv_screen_active());
     lv_obj_clean(lv_layer_top());
+    lv_release_variable();
 }
 
 bool lv_demo_stress_finished(void)
