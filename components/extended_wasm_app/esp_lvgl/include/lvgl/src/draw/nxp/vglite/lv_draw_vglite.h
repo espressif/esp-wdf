@@ -4,27 +4,9 @@
  */
 
 /**
- * MIT License
+ * Copyright 2023-2024 NXP
  *
- * Copyright 2022, 2023 NXP
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next paragraph)
- * shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * SPDX-License-Identifier: MIT
  */
 
 #ifndef LV_DRAW_VGLITE_H
@@ -40,8 +22,17 @@ extern "C" {
 
 #include "../../../lv_conf_internal.h"
 
-#if LV_USE_GPU_NXP_VG_LITE
-#include "../../sw/lv_draw_sw.h"
+#if LV_USE_DRAW_VGLITE
+#include "../../lv_draw_private.h"
+#include "../../../display/lv_display_private.h"
+#include "../../../misc/lv_area_private.h"
+
+#include "../../lv_draw_triangle.h"
+#include "../../lv_draw_label.h"
+#include "../../lv_draw_image.h"
+#include "../../lv_draw_line.h"
+#include "../../lv_draw_arc.h"
+#include "vg_lite.h"
 
 /*********************
  *      DEFINES
@@ -50,20 +41,58 @@ extern "C" {
 /**********************
  *      TYPEDEFS
  **********************/
-typedef lv_draw_sw_ctx_t lv_draw_vglite_ctx_t;
+
+typedef struct vglite_draw_task {
+    lv_draw_task_t * t;
+    vg_lite_path_t * path;
+    vg_lite_linear_gradient_t * gradient;
+    int32_t * path_data;
+} vglite_draw_task_t;
+
+typedef struct lv_draw_vglite_unit {
+    lv_draw_unit_t base_unit;
+    vglite_draw_task_t * task_act;
+#if LV_USE_OS
+    lv_thread_sync_t sync;
+    lv_thread_t thread;
+    volatile bool inited;
+    volatile bool exit_status;
+#endif
+#if LV_USE_VGLITE_DRAW_ASYNC
+    volatile bool wait_for_finish;
+#endif
+} lv_draw_vglite_unit_t;
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
 
-void lv_draw_vglite_ctx_init(struct _lv_disp_drv_t * drv, lv_draw_ctx_t * draw_ctx);
+void lv_draw_buf_vglite_init_handlers(void);
 
-void lv_draw_vglite_ctx_deinit(struct _lv_disp_drv_t * drv, lv_draw_ctx_t * draw_ctx);
+void lv_draw_vglite_init(void);
+
+void lv_draw_vglite_deinit(void);
+
+void lv_draw_vglite_arc(vglite_draw_task_t * vglite_task);
+
+void lv_draw_vglite_border(vglite_draw_task_t * vglite_task);
+
+void lv_draw_vglite_fill(vglite_draw_task_t * vglite_task);
+
+void lv_draw_vglite_img(vglite_draw_task_t * vglite_task);
+
+void lv_draw_vglite_label(vglite_draw_task_t * vglite_task);
+
+void lv_draw_vglite_layer(vglite_draw_task_t * vglite_task);
+
+void lv_draw_vglite_line(vglite_draw_task_t * vglite_task);
+
+void lv_draw_vglite_triangle(vglite_draw_task_t * vglite_task);
 
 /**********************
  *      MACROS
  **********************/
-#endif /*LV_USE_GPU_NXP_VG_LITE*/
+#endif /*LV_USE_DRAW_VGLITE*/
 
 #ifdef __cplusplus
 } /*extern "C"*/

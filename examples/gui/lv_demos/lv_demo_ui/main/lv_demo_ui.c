@@ -96,7 +96,7 @@ static void anim_timer_cb(lv_timer_t *timer)
 
     // Delete timer when all animation finished
     if ((count += 5) == 220) {
-        lv_timer_del(timer);
+        lv_timer_delete(timer);
     } else {
         LV_TIMER_CTX_SET_DATA(timer_ctx, LV_TIMER_CTX_COUNT_VAL, count);
     }
@@ -144,5 +144,6 @@ void lv_demo_ui(void)
 void lv_demo_ui_close(void)
 {
     lv_obj_clean(g_scr);
+    lv_release_variable();
 }
 
