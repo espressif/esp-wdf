@@ -96,7 +96,13 @@ __main() {
 
     __verbose "Using Python interpreter in $(which python)"
     __verbose "Checking if Python packages are up to date..."
-    python "${IDF_PATH}/tools/check_python_dependencies.py" || return 1
+    # Use venv's Python explicitly when available (avoids Cursor/integrated terminal
+    # resolving 'python' to a different interpreter, e.g. AppImage-bundled Python)
+    if [ -n "${IDF_PYTHON_ENV_PATH}" ] && [ -x "${IDF_PYTHON_ENV_PATH}/bin/python" ]; then
+        "${IDF_PYTHON_ENV_PATH}/bin/python" "${IDF_PATH}/tools/check_python_dependencies.py" || return 1
+    else
+        "$ESP_PYTHON" "${IDF_PATH}/tools/check_python_dependencies.py" || return 1
+    fi
 
     if [ -n "$BASH" ]
     then
@@ -154,7 +160,13 @@ __cleanup() {
 
 
 __enable_autocomplete() {
-    click_version="$(python -c 'import click; print(click.__version__.split(".")[0])')"
+    # Use importlib.metadata (click.__version__ is deprecated in Click 9.1)
+    if [ -n "${IDF_PYTHON_ENV_PATH}" ] && [ -x "${IDF_PYTHON_ENV_PATH}/bin/python" ]; then
+        _py="${IDF_PYTHON_ENV_PATH}/bin/python"
+    else
+        _py="$ESP_PYTHON"
+    fi
+    click_version="$("$_py" -c 'import importlib.metadata; print(importlib.metadata.version("click").split(".")[0])' 2>/dev/null || echo "8")"
     if [[ click_version -lt 8 ]]
     then
         SOURCE_ZSH=source_zsh

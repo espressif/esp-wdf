@@ -372,7 +372,7 @@ def init_cli(verbose_output=None):
 
             return super(Option, self).get_help_record(ctx)
 
-    class CLI(click.MultiCommand):
+    class CLI(click.Group):
         """Action list contains all actions with options available for CLI"""
         def __init__(self, all_actions=None, verbose_output=None, help=None):
             super(CLI, self).__init__(

@@ -10,6 +10,7 @@ import sys
 import warnings
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
+warnings.filterwarnings('ignore', message='.*pkg_resources is deprecated.*')
 try:
     import pkg_resources
 except Exception:
